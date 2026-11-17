@@ -102,7 +102,7 @@ export function resolveCmsBaseUrl(): string {
   }
   const envUrl = import.meta.env.PUBLIC_CMS_API_URL || '';
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  return (qsCms || stored || envUrl || (isLocal ? 'http://127.0.0.1:4000' : '')).replace(/\/+$/, '');
+  return (qsCms || stored || envUrl || (isLocal ? 'http://127.0.0.1:4000' : 'https://cms-core-api-production.up.railway.app')).replace(/\/+$/, '');
 }
 
 function splitHeading(text: string): { before: string; em: string } {

@@ -148,7 +148,7 @@ function mapCmsDocToArticle(doc: CmsDocument, index: number): BlogArticle {
  * y usa como fuente estática garantizada las instantáneas en ../cms/snapshots/.
  */
 export async function getPublishedBlogArticles(): Promise<BlogArticle[]> {
-  const cmsApiUrl = process.env.CMS_API_URL || 'http://127.0.0.1:4000';
+  const cmsApiUrl = process.env.CMS_API_URL || 'https://cms-core-api-production.up.railway.app';
 
   // 1. Intentar obtener desde cms-core-api si está encendida
   try {
