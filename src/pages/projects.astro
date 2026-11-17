@@ -1,0 +1,173 @@
+---
+import BlogLayout from '../layouts/BlogLayout.astro';
+import { projects, marquee } from '../data/site';
+---
+<BlogLayout
+  title="Projects — Diego Cortés Hernandez · Dev Blog"
+  description="Full-stack systems, mobile apps and applied Python engines documented by Diego Cortés Hernandez."
+  activePage="projects"
+  indicator="02 / projects"
+  backHref="/"
+  backLabel="hub"
+>
+
+  <!-- ============================================================
+       SECTION 02: PROJECTS & BLUEPRINTS (dev_blog_pasado/html/projects.html + Landing Page)
+       ============================================================ -->
+  <section class="projects subpage-hero" id="projects" data-section-indicator="02 / projects">
+    <div class="projects__bg" aria-hidden="true">
+      <div class="projects__bg-overlay"></div>
+      <div class="projects__grid-pattern"></div>
+      <div class="projects__scanlines"></div>
+      <div class="projects__scan-sweep"></div>
+    </div>
+
+    <div class="projects__header">
+      <div class="projects__header-left">
+        <div class="projects__tag anim" data-anim="typewriter">
+          &lt; dev / projects /&gt;
+        </div>
+
+        <h2 class="projects__heading">
+          <span class="heading-line anim" data-anim="clip-up" data-delay="0">
+            <span class="heading-line__inner">Ideas, projects</span>
+          </span>
+          <span class="heading-line anim" data-anim="clip-up" data-delay="1">
+            <span class="heading-line__inner"><em>and code.</em></span>
+          </span>
+          <svg class="about__star anim" data-anim="star-burst" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+            <path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="#ececec" />
+          </svg>
+        </h2>
+
+        <p class="projects__desc anim" data-anim="blur-in" data-delay="2">
+          This is where I document everything I build,<br />
+          from university full-stack systems<br />
+          to mobile apps and applied Python engines.
+        </p>
+      </div>
+
+      <div class="projects__header-right">
+        <nav class="projects__nav anim" data-anim="slide-right" data-delay="1" aria-label="Project categories">
+          <span data-project-filter="all" class="is-active">/ all</span>
+          <span data-project-filter="full-stack">/ full-stack</span>
+          <span data-project-filter="mobile">/ web &amp; mobile</span>
+          <span data-project-filter="python">/ python</span>
+        </nav>
+        <div class="projects__tagline anim" data-anim="blur-in" data-delay="3">
+          code / build / ship
+        </div>
+      </div>
+    </div>
+
+    <div class="projects__cards">
+      {projects.map((proj, idx) => (
+        <article class="card anim" data-anim="card-reveal" data-delay={idx} data-project-card={proj.filterKey}>
+          <div class="card__category" style={`color: ${proj.accent}`}>{proj.category}</div>
+
+          <!-- Procedural Prismatic SVG Blueprint (replaces old raster photos) -->
+          <div class="card__image-wrap">
+            <div class="card__blueprint" style={`--bp-accent: ${proj.accent}`}>
+              {proj.blueprint === 'architecture' && (
+                <svg viewBox="0 0 320 200" class="card__blueprint-svg" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="bpGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#a083fa" stop-opacity="0.35" />
+                      <stop offset="50%" stop-color="#08f7fe" stop-opacity="0.2" />
+                      <stop offset="100%" stop-color="#ff304d" stop-opacity="0.3" />
+                    </linearGradient>
+                  </defs>
+                  <polygon points="160,24 96,154 224,154" fill="url(#bpGrad1)" stroke="#a083fa" stroke-width="1.5" />
+                  <line x1="16" y1="115" x2="115" y2="95" stroke="#f5faff" stroke-width="2" />
+                  <line x1="196" y1="88" x2="304" y2="56" stroke="#ff304d" stroke-width="1.6" />
+                  <line x1="202" y1="100" x2="304" y2="88" stroke="#ffb74d" stroke-width="1.6" />
+                  <line x1="208" y1="112" x2="304" y2="120" stroke="#08f7fe" stroke-width="1.6" />
+                  <line x1="214" y1="124" x2="304" y2="152" stroke="#a083fa" stroke-width="1.6" />
+                  <text x="18" y="34" fill="#888" font-size="9" font-family="JetBrains Mono">JAVA · JAVALIN · 3NF SQL</text>
+                  <text x="18" y="182" fill="#ccc" font-size="10" font-family="JetBrains Mono">&gt; bakingdesk_api_v1</text>
+                </svg>
+              )}
+              {proj.blueprint === 'mobile' && (
+                <svg viewBox="0 0 320 200" class="card__blueprint-svg" aria-hidden="true">
+                  <rect x="112" y="20" width="96" height="160" rx="12" fill="rgba(8,247,254,0.06)" stroke="#08f7fe" stroke-width="1.5" />
+                  <circle cx="160" cy="86" r="24" fill="none" stroke="#08f7fe" stroke-width="1.2" stroke-dasharray="4 3" />
+                  <polygon points="160,68 144,98 176,98" fill="rgba(8,247,254,0.22)" stroke="#f5faff" stroke-width="1.2" />
+                  <line x1="128" y1="128" x2="192" y2="128" stroke="rgba(255,255,255,0.35)" stroke-width="2" />
+                  <line x1="128" y1="142" x2="176" y2="142" stroke="rgba(8,247,254,0.5)" stroke-width="2" />
+                  <text x="18" y="34" fill="#888" font-size="9" font-family="JetBrains Mono">MOBILE · COLLECTIBLES</text>
+                  <text x="18" y="182" fill="#08f7fe" font-size="10" font-family="JetBrains Mono">&gt; vitther_sync_engine</text>
+                </svg>
+              )}
+              {proj.blueprint === 'telemetry' && (
+                <svg viewBox="0 0 320 200" class="card__blueprint-svg" aria-hidden="true">
+                  <path d="M 24 156 Q 75 150, 105 96 T 165 48 T 225 110 T 296 156" fill="rgba(255,183,77,0.12)" stroke="#ffb74d" stroke-width="2" />
+                  <line x1="165" y1="28" x2="165" y2="164" stroke="rgba(255,183,77,0.45)" stroke-width="1" stroke-dasharray="3 3" />
+                  <circle cx="165" cy="48" r="4.5" fill="#ffb74d" />
+                  <text x="18" y="34" fill="#888" font-size="9" font-family="JetBrains Mono">PYTHON · STREAMLIT · P(A|B)</text>
+                  <text x="18" y="182" fill="#ffb74d" font-size="10" font-family="JetBrains Mono">&gt; bayes_gt3_posterior</text>
+                </svg>
+              )}
+            </div>
+            <div class="card__image-scanlines"></div>
+          </div>
+
+          <div class="card__body">
+            <h3 class="card__title">
+              {proj.title}
+              <span class="card__title-arrow">&rarr;</span><br />
+              {proj.subtitle}
+            </h3>
+            <p class="card__text">{proj.description}</p>
+            <div class="card__chips">
+              {proj.stack.map((tech) => <span class="card__chip">{tech}</span>)}
+            </div>
+            <div class="card__footer">
+              <span class="card__date">{proj.date}</span>
+              <a
+                href={proj.href}
+                class="card__link"
+                target={proj.href.startsWith('http') ? '_blank' : undefined}
+                rel={proj.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                data-nav={proj.href.startsWith('/') ? '' : undefined}
+              >
+                {proj.cta} <span>&rarr;</span>
+              </a>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <!-- Landing Page Infinite Tech Marquee -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        {[...marquee, ...marquee].map((item) => (
+          <span class="marquee__item">
+            <span class="marquee__dot"></span>
+            {item}
+          </span>
+        ))}
+      </div>
+    </div>
+
+    <div class="projects__counter anim" data-anim="counter-reveal">
+      <div class="about__counter-line"></div>
+      <span class="about__counter-num">02</span>
+      <span class="about__counter-label">projects</span>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PAGE PAGER (dev_blog_pasado .next-page)
+       ============================================================ -->
+  <nav class="next-page" aria-label="Blog pages">
+    <a href="/thoughts" class="next-page__link" data-nav>
+      <span class="next-page__arrow" aria-hidden="true">&larr;</span>
+      <span class="next-page__label">prev: thoughts</span>
+    </a>
+    <a href="/about" class="next-page__link" data-nav>
+      <span class="next-page__label">next: about</span>
+      <span class="next-page__arrow" aria-hidden="true">&rarr;</span>
+    </a>
+  </nav>
+</BlogLayout>

@@ -1,0 +1,47 @@
+---
+import type { BlogArticle } from '../lib/cms';
+
+interface Props {
+  article: BlogArticle;
+  index: number;
+}
+
+const { article, index } = Astro.props;
+const formattedIndex = String(index + 1).padStart(2, '0');
+---
+<article
+  class="thread anim"
+  data-anim="thread-reveal"
+  data-delay={index % 3}
+  data-category={article.category}
+  data-prism-hover={article.category}
+>
+  <div class="thread__index">{formattedIndex}</div>
+  <div class="thread__content">
+    <div class="thread__meta">
+      <span class={`thread__category thread__category--${article.category}`}>{article.categoryLabel}</span>
+      <span class="thread__sep">&mdash;</span>
+      <span class="thread__date">{article.dateDisplay}</span>
+      <span class="thread__sep">&middot;</span>
+      <span class="thread__reading">{article.readingTime} min read</span>
+      <span class="thread__cms-badge" title={`CMS Frozen Template: ${article.frozenTemplateName}`}>
+        ● CMS
+      </span>
+    </div>
+
+    <h3 class="thread__title">
+      <a href={`/blog/${article.slug}`} class="thread__title-link" data-nav>
+        {article.title}
+      </a>
+    </h3>
+
+    <p class="thread__excerpt">{article.lead}</p>
+
+    <div class="thread__footer">
+      <a href={`/blog/${article.slug}`} class="thread__link" data-nav>
+        read thread <span>&rarr;</span>
+      </a>
+      <span class="thread__role">{article.roleSummary}</span>
+    </div>
+  </div>
+</article>

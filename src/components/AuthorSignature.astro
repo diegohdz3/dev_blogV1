@@ -1,0 +1,28 @@
+---
+const portfolioUrl = import.meta.env.PUBLIC_PORTFOLIO_URL || 'http://localhost:4321';
+---
+
+<aside class="author-box" aria-label="About the author">
+  <div>
+    <div style="font-size: 0.74rem; color: var(--accent-violet); margin-bottom: 4px;">
+      / written &amp; engineered by
+    </div>
+    <strong style="font-size: 1.15rem; display: block; margin-bottom: 4px;">
+      Diego Cortés Hernandez
+    </strong>
+    <p style="font-family: var(--font-sans); font-size: 0.9rem; color: var(--text-secondary); max-width: 56ch;">
+      IT Student, full-stack &amp; frontend developer. Building ideas into real systems and sharing notes along the way.
+    </p>
+  </div>
+
+  <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+    <a href={portfolioUrl} class="nav-pill">
+      <span>view landing portfolio</span>
+      <span aria-hidden="true">↗</span>
+    </a>
+    <a href="https://github.com/diegohdz3" target="_blank" rel="noopener noreferrer" class="nav-pill">
+      <span>github</span>
+      <span aria-hidden="true">↗</span>
+    </a>
+  </div>
+</aside>

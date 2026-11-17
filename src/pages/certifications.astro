@@ -1,0 +1,103 @@
+---
+import BlogLayout from '../layouts/BlogLayout.astro';
+import { credentials } from '../data/site';
+---
+<BlogLayout
+  title="Certifications — Diego Cortés Hernandez · Dev Blog"
+  description="Verified courses and credentials: Cisco Networking Academy, AWS Academy, Azul School."
+  activePage="certifications"
+  indicator="03.1 / certifications"
+  backHref="/"
+  backLabel="hub"
+>
+
+  <!-- ============================================================
+       CERTIFICATIONS (dev_blog_pasado/html/certifications.html)
+       ============================================================ -->
+  <section class="about certifications-page subpage-hero" id="certifications" data-section-indicator="03.1 / certifications">
+    <div class="about__bg" aria-hidden="true">
+      <div class="about__scanlines"></div>
+      <div class="about__scan-sweep"></div>
+      <div class="about__overlay"></div>
+    </div>
+
+    <div class="about__content certifications-page__content">
+      <div class="about__left">
+        <div class="thoughts__tag anim" data-anim="typewriter">&lt; certifications /&gt;</div>
+        <h2 class="about__heading">
+          <span class="heading-line anim" data-anim="clip-up" data-delay="0">
+            <span class="heading-line__inner">Always <em>learning.</em></span>
+          </span>
+          <span class="heading-line anim" data-anim="clip-up" data-delay="1">
+            <span class="heading-line__inner">Always <em>verified.</em></span>
+          </span>
+          <svg class="about__star anim" data-anim="star-burst" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+            <path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="#ececec" />
+          </svg>
+        </h2>
+        <p class="about__bio anim" data-anim="blur-in" data-delay="2">
+          Courses and credentials I've completed outside the classroom — networking, operating systems,
+          cloud and C++. Every badge links to its public verification page.
+        </p>
+      </div>
+
+      <div class="about__certs-block">
+        <div class="about__certs-header">
+          <span class="about__credentials-label">/ continued learning &amp; verified credentials</span>
+          <strong>Courses &amp; certifications</strong>
+        </div>
+        <div class="certifications__list">
+          {credentials.map((cert, idx) => (
+            <article class="certification anim" data-anim="blur-in" data-delay={idx % 4}>
+              <div class="certification__body">
+                <div class="certification__chips">
+                  <span class={`certification__chip certification__chip--issuer ${cert.chipClass}`}>
+                    {cert.issuer}
+                  </span>
+                  <span class="certification__chip certification__chip--hours">{cert.hours}</span>
+                </div>
+                <h4 class="certification__title">{cert.title}</h4>
+                <p class="certification__meta">
+                  <span>{cert.issuer}</span>
+                  <span class="certification__meta-sep" aria-hidden="true">&bull;</span>
+                  <time>{cert.issued}</time>
+                </p>
+              </div>
+              <div class="certification__actions">
+                <a
+                  href={cert.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="certification__btn certification__btn--verify"
+                >
+                  <span>Verify credential</span>
+                  <span class="certification__btn-arrow" aria-hidden="true">&nearr;</span>
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div class="about__counter anim" data-anim="counter-reveal">
+      <div class="about__counter-line"></div>
+      <span class="about__counter-num">03.1</span>
+      <span class="about__counter-label">certifications</span>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PAGE PAGER (dev_blog_pasado .next-page)
+       ============================================================ -->
+  <nav class="next-page" aria-label="Blog pages">
+    <a href="/about" class="next-page__link" data-nav>
+      <span class="next-page__arrow" aria-hidden="true">&larr;</span>
+      <span class="next-page__label">prev: about</span>
+    </a>
+    <a href="/contact" class="next-page__link" data-nav>
+      <span class="next-page__label">next: contact</span>
+      <span class="next-page__arrow" aria-hidden="true">&rarr;</span>
+    </a>
+  </nav>
+</BlogLayout>

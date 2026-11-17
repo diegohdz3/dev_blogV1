@@ -1,0 +1,137 @@
+---
+import BlogLayout from '../../layouts/BlogLayout.astro';
+import ParticleBackdrop from '../../components/ParticleBackdrop.astro';
+import BlockRenderer from '../../components/BlockRenderer.astro';
+import AuthorSignature from '../../components/AuthorSignature.astro';
+import { getPublishedBlogArticles, type BlogArticle } from '../../lib/cms';
+
+export async function getStaticPaths() {
+  const articles = await getPublishedBlogArticles();
+  return articles.map((article, index) => ({
+    params: { slug: article.slug },
+    props: {
+      article,
+      nextArticle: articles[(index + 1) % articles.length] || null,
+    },
+  }));
+}
+
+interface Props {
+  article: BlogArticle;
+  nextArticle: BlogArticle | null;
+}
+
+const { article, nextArticle } = Astro.props;
+---
+<BlogLayout
+  title={`${article.title} — Diego Cortés Hernandez`}
+  description={article.lead}
+  activePage="article"
+  indicator={`${article.counterNum} / ${article.counterLabel}`}
+  backHref="/thoughts"
+  backLabel="thoughts"
+>
+  <ParticleBackdrop />
+
+  <!-- ============================================================
+       ARTICLE / PROJECT HERO (Exact dev_blog_pasado .pj-hero + 3D Prism)
+       ============================================================ -->
+  <section class="pj-hero subpage-hero" id="articleHero" data-category={article.category}>
+    <div class="pj-hero__bg" data-parallax>
+      <div class="pj-hero__grid-pattern"></div>
+      <div class="pj-hero__scanlines"></div>
+      <div class="pj-hero__scan-sweep"></div>
+      <div class="pj-hero__overlay"></div>
+    </div>
+
+    <div class="pj-hero__content">
+      <div class="pj-hero__meta">
+        <span class="pj-hero__tag anim" data-anim="typewriter">
+          {article.heroTag}
+        </span>
+        <span class={`pj-hero__category pj-hero__category--${article.category} anim`} data-anim="blur-in" data-delay="1">
+          {article.categoryLabel}
+        </span>
+        <span class="pj-hero__date anim" data-anim="blur-in" data-delay="2">
+          {article.dateDisplay} &middot; {article.readingTime} min read
+        </span>
+        <span class="pj-hero__cms-pill anim" data-anim="blur-in" data-delay="2" title={`UUIDv7: ${article.document_id}`}>
+          ● {article.frozenTemplateName}
+        </span>
+      </div>
+
+      <h1 class="pj-hero__title">
+        <span class="heading-line anim" data-anim="clip-up" data-delay="0">
+          <span class="heading-line__inner">{article.heroTitle}</span>
+        </span>
+        {article.heroSubtitle && (
+          <span class="heading-line anim" data-anim="clip-up" data-delay="1">
+            <span class="heading-line__inner"><em>{article.heroSubtitle}</em></span>
+          </span>
+        )}
+        <svg class="about__star anim" data-anim="star-burst" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+          <path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="#ececec" />
+        </svg>
+      </h1>
+
+      <p class="pj-hero__subtitle anim" data-anim="blur-in" data-delay="3">
+        {article.lead}
+      </p>
+
+      <div class="pj-hero__actions anim" data-anim="blur-in" data-delay="4">
+        <a href="#articleBody" class="pj-hero__visit-btn" data-magnetic="0.18">
+          <span class="pj-hero__visit-border">
+            <svg viewBox="0 0 300 64" preserveAspectRatio="none" aria-hidden="true">
+              <rect x="1" y="1" width="298" height="62" rx="4" ry="4" />
+            </svg>
+          </span>
+          <span class="pj-hero__visit-pulse"></span>
+          <span class="pj-hero__visit-label">
+            [ read full thread ]
+          </span>
+          <span class="pj-hero__visit-arrow">&darr;</span>
+        </a>
+
+        {article.repoUrl && (
+          <a href={article.repoUrl} target="_blank" rel="noopener noreferrer" class="pj-hero__scroll-hint">
+            <span>view source repository</span>
+            <span aria-hidden="true">&nearr;</span>
+          </a>
+        )}
+      </div>
+    </div>
+
+    <div class="pj-hero__counter anim" data-anim="counter-reveal">
+      <div class="about__counter-line"></div>
+      <span class="about__counter-num">{article.counterNum}</span>
+      <span class="about__counter-label">{article.counterLabel}</span>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       ARTICLE BODY (dev_blog_pasado .th-article & .pj-section)
+       ============================================================ -->
+  <div id="articleBody" class="article-body-wrapper">
+    <BlockRenderer blocks={article.blocks} />
+
+    <div class="th-article__signature-wrap">
+      <AuthorSignature roleSummary={article.roleSummary} publishedAt={article.dateDisplay} />
+    </div>
+  </div>
+
+  <!-- ============================================================
+       NEXT PAGE HINT (dev_blog_pasado .next-page)
+       ============================================================ -->
+  <div class="next-page" id="nextPage">
+    <a href="/thoughts" class="next-page__link" data-nav>
+      <span class="next-page__arrow" aria-hidden="true">&larr;</span>
+      <span class="next-page__label">back to thoughts</span>
+    </a>
+    {nextArticle && nextArticle.slug !== article.slug && (
+      <a href={`/blog/${nextArticle.slug}`} class="next-page__link" data-nav>
+        <span class="next-page__label">next: {nextArticle.heroTitle}</span>
+        <span class="next-page__arrow" aria-hidden="true">&rarr;</span>
+      </a>
+    )}
+  </div>
+</BlogLayout>

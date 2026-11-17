@@ -1,0 +1,42 @@
+---
+import type { BlogArticle } from '../lib/cms';
+
+export interface Props {
+  article: BlogArticle;
+  featured?: boolean;
+}
+
+const { article, featured = false } = Astro.props;
+---
+
+<article
+  class:list={['article-card', { 'article-card--featured': featured }]}
+  data-article-category={article.category}
+>
+  <div>
+    <div class="article-card__meta">
+      <span class="article-card__category">{article.categoryLabel}</span>
+      <span>•</span>
+      <time>{article.dateDisplay}</time>
+      <span>•</span>
+      <span>{article.readingTime} min read</span>
+      {featured && <span class="cms-verified-pill">Featured Dispatch</span>}
+    </div>
+
+    <h3 class="article-card__title">
+      <a href={`/blog/${article.slug}`}>
+        {article.heroTitle} {article.heroSubtitle && <em>{article.heroSubtitle}</em>}
+      </a>
+    </h3>
+
+    <p class="article-card__lead">{article.lead}</p>
+  </div>
+
+  <div class="article-card__footer">
+    <span style="color: var(--text-muted)">{article.roleSummary}</span>
+    <a href={`/blog/${article.slug}`} class="article-card__cta">
+      <span>read article</span>
+      <span aria-hidden="true">&rarr;</span>
+    </a>
+  </div>
+</article>

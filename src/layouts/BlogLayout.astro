@@ -1,0 +1,80 @@
+---
+import '../styles/blog.css';
+import BlogNav from '../components/BlogNav.astro';
+import PrismBackdrop from '../components/PrismBackdrop.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  activePage?: 'home' | 'thoughts' | 'projects' | 'about' | 'certifications' | 'contact' | 'article';
+  indicator?: string;
+  backHref?: string;
+  backLabel?: string;
+  bodyClass?: string;
+}
+
+const {
+  title,
+  description = 'Dev Blog & Engineering Notes by Diego Cortés Hernandez — IT Student & Developer.',
+  activePage = 'home',
+  indicator = '00 / spectrum hub',
+  backHref = '/',
+  backLabel = 'hub',
+  bodyClass = 'subpage',
+} = Astro.props;
+
+const metricsBaseUrl = import.meta.env.PUBLIC_METRICS_URL || '';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class={bodyClass} data-page={activePage}>
+    <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+    <!-- Persistent 3D WebGL Prism & HUD (never unmounted across stage transitions) -->
+    <PrismBackdrop initialCategory="all" initialMode="spectrum" showHud={true} />
+
+    <BlogNav
+      activePage={activePage}
+      indicator={indicator}
+      backHref={backHref}
+      backLabel={backLabel}
+    />
+
+    <main class="blog-stage" id="blogStage" data-page={activePage}>
+      <slot />
+    </main>
+
+    <script>
+      import '../scripts/blog-runtime';
+    </script>
+
+    <!-- Universal Privacy-First Beacon (metrics-collector-retriever :8000/v1/beacon.js) -->
+    <script is:inline define:vars={{ metricsBaseUrl }}>
+      (function loadBeacon() {
+        const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        const base = (metricsBaseUrl || (isLocal ? 'http://127.0.0.1:8000' : '')).replace(/\/+$/, '');
+        if (!base) return;
+        const s = document.createElement('script');
+        s.defer = true;
+        s.src = `${base}/v1/beacon.js`;
+        s.dataset.site = 'diego-dev-blog';
+        s.dataset.collectUrl = `${base}/v1/collect`;
+        s.onerror = () => s.remove();
+        document.body.appendChild(s);
+      })();
+    </script>
+  </body>
+</html>

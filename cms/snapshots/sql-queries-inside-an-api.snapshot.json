@@ -1,0 +1,269 @@
+{
+  "job_id": "01a1acbc-80dd-77e0-983f-f2d80130752b",
+  "build_id": "01a1acbc-80dd-77e0-983f-f2d80130752b",
+  "trigger_reason": "INITIAL_PUBLISH",
+  "exported_at": "2026-11-05T17:23:17.341Z",
+  "sha256_checksum": "63419d6d84019e5995e1286869a579affb13fc0e82baff1d2553ce1b589abe9e",
+  "artifact_path": "C:\\Users\\dcort\\WebstormProjects\\IDEAS\\cms\\snapshots\\artifacts\\01a1acbc-80db-786a-a2b5-af92394f0110.html",
+  "worker_url": "http://127.0.0.1:8001",
+  "document": {
+    "document_id": "01a1acbc-80db-786a-a2b5-af92394f0110",
+    "slug": "sql-queries-inside-an-api",
+    "title": "How to Make SQL Queries Inside an API",
+    "content_type": "DEV_BLOG",
+    "status": "PUBLICADO",
+    "template_id": "01a1acbc-80b7-703e-af7a-19b3de7ef5dd",
+    "frozen_template": {
+      "template_id": "01a1acbc-80b7-703e-af7a-19b3de7ef5dd",
+      "name": "Plantilla Bitacora Tecnica y Case Study",
+      "allow_published_edit": false,
+      "metadata_contract": [
+        {
+          "field_key": "reading_time",
+          "expected_type": "INT",
+          "is_required": true
+        },
+        {
+          "field_key": "canonical_tag",
+          "expected_type": "STRING",
+          "is_required": true
+        },
+        {
+          "field_key": "role_summary",
+          "expected_type": "STRING",
+          "is_required": true
+        },
+        {
+          "field_key": "repo_url",
+          "expected_type": "STRING",
+          "is_required": false
+        }
+      ],
+      "layout_structure": {
+        "regions": [
+          "header",
+          "case_hero",
+          "overview",
+          "timeline",
+          "main_canvas",
+          "learnings",
+          "footer"
+        ],
+        "theme_variant": "prism-editorial-blog"
+      },
+      "frozen_at": "2026-11-05T17:23:17.340Z"
+    },
+    "metadata_values": {
+      "reading_time": 7,
+      "canonical_tag": "tutorials",
+      "role_summary": "Backend & Database Engineering Guide",
+      "repo_url": "https://github.com/diegohdz3"
+    },
+    "canvas_blocks": [
+      {
+        "block_id": "01a1acbc-80db-7855-8101-6286e25727e0",
+        "block_type": "CASE_HERO",
+        "order_index": 1,
+        "content_payload": {
+          "tag": "< thought / 02 />",
+          "counter_num": "02.2",
+          "counter_label": "tutorial",
+          "title": "How to Make SQL Queries",
+          "subtitle": "Inside an API.",
+          "category": "/ tutorial",
+          "date": "Sep 15, 2026",
+          "lead": "A practical, step-by-step tutorial on connecting your API to a database and running SQL queries safely — from your first SELECT to parameterized statements."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-7856-b00a-72ceaa1179a7",
+        "block_type": "HEADING",
+        "order_index": 2,
+        "content_payload": {
+          "level": 2,
+          "eyebrow": "/ the basics",
+          "text": "Why SQL inside APIs?"
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-7857-8add-c0fa1d3a21b5",
+        "block_type": "PARAGRAPH",
+        "order_index": 3,
+        "content_payload": {
+          "text": "Every application that deals with data needs a way to talk to a database. Whether you're building a to-do app or an enterprise system, at some point your API needs to read, write, update, or delete data. That's where SQL comes in.\n\nThe concept is simple: your API receives a request from the client, processes it, runs a SQL query against the database, and returns the result. But doing it right — safely, efficiently, and cleanly — that's where things get interesting."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-7858-bc18-08d77f33b0f1",
+        "block_type": "HEADING",
+        "order_index": 4,
+        "content_payload": {
+          "level": 2,
+          "eyebrow": "/ step 01",
+          "text": "Setting up the connection."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-7859-af3c-566e1eadf2e5",
+        "block_type": "PARAGRAPH",
+        "order_index": 5,
+        "content_payload": {
+          "text": "First, you need to establish a connection between your API and your database. Most languages have libraries or drivers for this. For example, in Node.js you might use mysql2 or pg for PostgreSQL:"
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-785a-aaae-c456d109535e",
+        "block_type": "CODE",
+        "order_index": 6,
+        "content_payload": {
+          "language": "javascript",
+          "filename": "db.js",
+          "code": "const mysql = require('mysql2/promise');\n\nconst pool = mysql.createPool({\n    host: 'localhost',\n    user: 'root',\n    password: 'your_password',\n    database: 'bakery_db',\n    waitForConnections: true,\n    connectionLimit: 10\n});\n\nmodule.exports = pool;"
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-785b-9c77-4160ed2b7a6e",
+        "block_type": "PARAGRAPH",
+        "order_index": 7,
+        "content_payload": {
+          "text": "Using a connection pool instead of a single connection is crucial. It lets your API handle multiple requests simultaneously without opening and closing connections for each one."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-785c-9453-1616bbb0bade",
+        "block_type": "HEADING",
+        "order_index": 8,
+        "content_payload": {
+          "level": 2,
+          "eyebrow": "/ step 02",
+          "text": "Writing your first query."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-785d-a937-74a09600b3d3",
+        "block_type": "PARAGRAPH",
+        "order_index": 9,
+        "content_payload": {
+          "text": "Once your connection is set up, you can start running queries from your API routes. Here's a basic example of a GET endpoint that fetches all products from a bakery database:"
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-785e-a7ec-7d32572633bf",
+        "block_type": "CODE",
+        "order_index": 10,
+        "content_payload": {
+          "language": "javascript",
+          "filename": "routes/products.js",
+          "code": "const express = require('express');\nconst router = express.Router();\nconst pool = require('../db');\n\n// GET all products\nrouter.get('/products', async (req, res) => {\n    try {\n        const [rows] = await pool.query(\n            'SELECT * FROM products ORDER BY created_at DESC'\n        );\n        res.json({ success: true, data: rows });\n    } catch (error) {\n        console.error('Database error:', error);\n        res.status(500).json({\n            success: false,\n            message: 'Failed to fetch products'\n        });\n    }\n});\n\nmodule.exports = router;"
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-785f-a8fa-390a439bb265",
+        "block_type": "PARAGRAPH",
+        "order_index": 11,
+        "content_payload": {
+          "text": "Notice how we wrap everything in a try/catch block. Database queries can fail for many reasons — connection timeouts, syntax errors, missing tables — and you always want to handle those gracefully instead of crashing your entire server."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-7860-b3e6-e392324bcdab",
+        "block_type": "HEADING",
+        "order_index": 12,
+        "content_payload": {
+          "level": 2,
+          "eyebrow": "/ step 03",
+          "text": "Parameterized queries — stay safe."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-7861-8b4f-b2d60d906a03",
+        "block_type": "PARAGRAPH",
+        "order_index": 13,
+        "content_payload": {
+          "text": "This is the most important part of this tutorial. Never, ever concatenate user input directly into your SQL queries. This opens the door to SQL injection attacks — one of the most common and dangerous vulnerabilities in web applications."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-7862-87a2-70fd312c5592",
+        "block_type": "QUOTE",
+        "order_index": 14,
+        "content_payload": {
+          "text": "SQL injection is not a theoretical risk — it's the #1 attack vector on the OWASP Top 10. Always use parameterized queries."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-7863-9aa4-ed66c449f0b9",
+        "block_type": "CODE",
+        "order_index": 15,
+        "content_payload": {
+          "language": "javascript",
+          "filename": "safe vs unsafe",
+          "code": "// ❌ DANGEROUS — never do this\nconst query = `SELECT * FROM products WHERE id = ${req.params.id}`;\n\n// ✅ SAFE — use parameterized queries\nconst [rows] = await pool.query(\n    'SELECT * FROM products WHERE id = ?',\n    [req.params.id]\n);\n\n// For INSERT operations\nconst [result] = await pool.query(\n    'INSERT INTO products (name, price, category) VALUES (?, ?, ?)',\n    [name, price, category]\n);"
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-7864-ab10-6d424392ab38",
+        "block_type": "PARAGRAPH",
+        "order_index": 16,
+        "content_payload": {
+          "text": "The ? placeholders are automatically escaped by the database driver, preventing any malicious input from being executed as SQL code."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-7865-b20a-903270b0814c",
+        "block_type": "HEADING",
+        "order_index": 17,
+        "content_payload": {
+          "level": 2,
+          "eyebrow": "/ step 04",
+          "text": "Structuring your queries."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-7866-9222-181106875415",
+        "block_type": "PARAGRAPH",
+        "order_index": 18,
+        "content_payload": {
+          "text": "As your application grows, you'll want to organize your SQL queries properly. A common pattern is to separate your database logic into its own model layer:"
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-7867-819c-b9a54cec6741",
+        "block_type": "CODE",
+        "order_index": 19,
+        "content_payload": {
+          "language": "javascript",
+          "filename": "models/Product.js",
+          "code": "const pool = require('../db');\n\nclass Product {\n    static async getAll() {\n        const [rows] = await pool.query(\n            'SELECT * FROM products ORDER BY created_at DESC'\n        );\n        return rows;\n    }\n\n    static async getById(id) {\n        const [rows] = await pool.query(\n            'SELECT * FROM products WHERE id = ?', [id]\n        );\n        return rows[0] || null;\n    }\n\n    static async create({ name, price, category }) {\n        const [result] = await pool.query(\n            'INSERT INTO products (name, price, category) VALUES (?, ?, ?)',\n            [name, price, category]\n        );\n        return { id: result.insertId, name, price, category };\n    }\n}\n\nmodule.exports = Product;"
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-7868-a0c0-07ac1acba7ea",
+        "block_type": "HEADING",
+        "order_index": 20,
+        "content_payload": {
+          "level": 2,
+          "eyebrow": "/ final notes",
+          "text": "Key takeaways."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80db-7869-9b04-6158817fc065",
+        "block_type": "PARAGRAPH",
+        "order_index": 21,
+        "content_payload": {
+          "list": [
+            "Always use a connection pool instead of single connections.",
+            "Parameterize everything. Never concatenate user input into queries.",
+            "Wrap queries in try/catch blocks and return meaningful error messages.",
+            "Separate your database logic into a model layer for cleaner code.",
+            "Use environment variables for database credentials — never hardcode them."
+          ],
+          "text": "SQL inside an API isn't complicated once you understand the pattern. The hard part is building the discipline to do it safely and consistently. Start simple, stay secure, and build from there."
+        }
+      }
+    ],
+    "published_at": "2026-11-05T17:23:17.340Z",
+    "updated_at": "2026-11-05T17:23:17.340Z"
+  }
+}

@@ -1,0 +1,179 @@
+{
+  "job_id": "01a1acbc-80e4-78df-9b59-b7a2936292bc",
+  "build_id": "01a1acbc-80e4-78df-9b59-b7a2936292bc",
+  "trigger_reason": "INITIAL_PUBLISH",
+  "exported_at": "2026-11-05T17:23:17.348Z",
+  "sha256_checksum": "dae02f060c1c9a132576890e5a32cc37fd27f9f1bf0959fb96d22222448f706d",
+  "artifact_path": "C:\\Users\\dcort\\WebstormProjects\\IDEAS\\cms\\snapshots\\artifacts\\01a1acbc-80e3-7722-9f30-8108cc3be5cb.html",
+  "worker_url": "http://127.0.0.1:8001",
+  "document": {
+    "document_id": "01a1acbc-80e3-7722-9f30-8108cc3be5cb",
+    "slug": "psychology-and-software-development",
+    "title": "Can We Merge Psychology with Software Development?",
+    "content_type": "DEV_BLOG",
+    "status": "PUBLICADO",
+    "template_id": "01a1acbc-80b7-703e-af7a-19b3de7ef5dd",
+    "frozen_template": {
+      "template_id": "01a1acbc-80b7-703e-af7a-19b3de7ef5dd",
+      "name": "Plantilla Bitacora Tecnica y Case Study",
+      "allow_published_edit": false,
+      "metadata_contract": [
+        {
+          "field_key": "reading_time",
+          "expected_type": "INT",
+          "is_required": true
+        },
+        {
+          "field_key": "canonical_tag",
+          "expected_type": "STRING",
+          "is_required": true
+        },
+        {
+          "field_key": "role_summary",
+          "expected_type": "STRING",
+          "is_required": true
+        },
+        {
+          "field_key": "repo_url",
+          "expected_type": "STRING",
+          "is_required": false
+        }
+      ],
+      "layout_structure": {
+        "regions": [
+          "header",
+          "case_hero",
+          "overview",
+          "timeline",
+          "main_canvas",
+          "learnings",
+          "footer"
+        ],
+        "theme_variant": "prism-editorial-blog"
+      },
+      "frozen_at": "2026-11-05T17:23:17.348Z"
+    },
+    "metadata_values": {
+      "reading_time": 6,
+      "canonical_tag": "opinions",
+      "role_summary": "Human-Centered Engineering Essay"
+    },
+    "canvas_blocks": [
+      {
+        "block_id": "01a1acbc-80e3-7716-a799-41c4dddd5e46",
+        "block_type": "CASE_HERO",
+        "order_index": 1,
+        "content_payload": {
+          "tag": "< thought / 01 />",
+          "counter_num": "02.1",
+          "counter_label": "thought",
+          "title": "Can We Merge Psychology",
+          "subtitle": "with Software Development?",
+          "category": "/ opinion",
+          "date": "Sep 28, 2026",
+          "lead": "What if understanding how people think could make us write better code? An exploration of two worlds that have more in common than you'd expect."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80e3-7717-8a84-d5cd92e6a190",
+        "block_type": "HEADING",
+        "order_index": 2,
+        "content_payload": {
+          "level": 2,
+          "eyebrow": "/ the question",
+          "text": "Two fields, one goal."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80e3-7718-ac78-3bfa074f6887",
+        "block_type": "PARAGRAPH",
+        "order_index": 3,
+        "content_payload": {
+          "text": "At first glance, psychology and software development seem like they belong in completely different universes. One studies the human mind — emotions, behavior, cognition. The other builds systems — logic, algorithms, code. But the more I study both, the more I realize they share a fundamental goal: understanding how things work and making them better.\n\nPsychology teaches us why people do what they do. Software development gives us the tools to build solutions. When you combine both, something interesting happens — you stop building for machines and start building for humans."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80e3-7719-9666-c1327e39b0e0",
+        "block_type": "HEADING",
+        "order_index": 4,
+        "content_payload": {
+          "level": 2,
+          "eyebrow": "/ cognitive patterns",
+          "text": "How we think affects how we code."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80e3-771a-9b91-43e7756d7b57",
+        "block_type": "PARAGRAPH",
+        "order_index": 5,
+        "content_payload": {
+          "text": "Cognitive biases don't just affect everyday decisions — they show up in our code too. Confirmation bias makes us ignore edge cases. The sunk cost fallacy keeps us attached to bad architecture. Anchoring bias makes us over-rely on the first solution that comes to mind.\n\nUnderstanding these patterns doesn't just make you a better thinker — it makes you a better developer. When you recognize that your brain is taking shortcuts, you can pause, step back, and write code that actually solves the problem instead of just satisfying your assumptions."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80e3-771b-8ab4-a146dda66435",
+        "block_type": "QUOTE",
+        "order_index": 6,
+        "content_payload": {
+          "text": "The best developers aren't the ones who write the most code — they're the ones who understand why they're writing it."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80e3-771c-8006-bd4b7750e368",
+        "block_type": "HEADING",
+        "order_index": 7,
+        "content_payload": {
+          "level": 2,
+          "eyebrow": "/ user empathy",
+          "text": "Empathy as a developer skill."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80e3-771d-9c71-e853d2d69bec",
+        "block_type": "PARAGRAPH",
+        "order_index": 8,
+        "content_payload": {
+          "text": "UX design already borrows heavily from psychology, but I think the connection goes deeper than just button placement. When you truly understand how users feel — their frustrations, their mental models, their expectations — you build software that feels intuitive, not just functional.\n\nEmpathy is not a soft skill. It is a technical advantage. It is the difference between an error message that says \"Error 500\" and one that says \"Something went wrong. We are working on it — try again in a moment.\" Both communicate the same thing; only one respects the user."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80e3-771e-bbf0-de329be0b2e3",
+        "block_type": "HEADING",
+        "order_index": 9,
+        "content_payload": {
+          "level": 2,
+          "eyebrow": "/ team dynamics",
+          "text": "Code is written by people."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80e3-771f-8cef-24361456d2e9",
+        "block_type": "PARAGRAPH",
+        "order_index": 10,
+        "content_payload": {
+          "text": "Behind every pull request, every code review, every sprint planning — there are people with egos, insecurities, motivations, and emotions. Psychology helps us navigate that. It teaches us how to give feedback without crushing someone's confidence, how to manage conflict constructively, and how to build teams that actually want to collaborate.\n\nI've seen projects fail not because of bad code, but because of bad communication. If we spent half the time we spend optimizing algorithms on understanding each other, our software — and our teams — would be significantly better."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80e3-7720-be80-2e0940552fd6",
+        "block_type": "HEADING",
+        "order_index": 11,
+        "content_payload": {
+          "level": 2,
+          "eyebrow": "/ my take",
+          "text": "Final thoughts."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80e3-7721-8b7c-10f44f50b63b",
+        "block_type": "PARAGRAPH",
+        "order_index": 12,
+        "content_payload": {
+          "text": "I'm not saying every developer needs a psychology degree. But I do believe that the best software is built by people who care about other people. And understanding a bit of psychology — how we think, feel, and behave — is one of the most underrated tools in a developer's toolkit.\n\nSo yes, I think we can merge psychology with software development. In fact, I think we should."
+        }
+      }
+    ],
+    "published_at": "2026-11-05T17:23:17.348Z",
+    "updated_at": "2026-11-05T17:23:17.348Z"
+  }
+}

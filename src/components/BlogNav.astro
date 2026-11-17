@@ -1,0 +1,65 @@
+---
+interface Props {
+  activePage?: 'home' | 'thoughts' | 'projects' | 'about' | 'certifications' | 'contact' | 'article';
+  indicator?: string;
+  backHref?: string;
+  backLabel?: string;
+}
+
+const {
+  activePage = 'home',
+  indicator = '00 / spectrum hub',
+  backHref = '/',
+  backLabel = 'hub',
+} = Astro.props;
+
+const isInternal = backHref.startsWith('/');
+const landingUrl = import.meta.env.PUBLIC_LANDING_URL || 'https://devblog33.vercel.app';
+const cmsAdminUrl = import.meta.env.PUBLIC_CMS_ADMIN_URL || 'http://127.0.0.1:4000/admin';
+
+// Each section of the blog lives on its own page (multi-page blog, not a one-page landing).
+const links = [
+  { href: '/thoughts', label: 'thoughts', active: activePage === 'thoughts' || activePage === 'article' },
+  { href: '/projects', label: 'projects', active: activePage === 'projects' },
+  { href: '/about', label: 'about', active: activePage === 'about' },
+  { href: '/certifications', label: 'certs', active: activePage === 'certifications' },
+  { href: '/contact', label: 'contact', active: activePage === 'contact' },
+];
+---
+<nav class="sub-nav" id="subNav" aria-label="Main navigation">
+  <a
+    href={backHref}
+    class="sub-nav__back"
+    data-nav={isInternal ? '' : undefined}
+    target={isInternal ? undefined : '_blank'}
+    rel={isInternal ? undefined : 'noopener noreferrer'}
+  >
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#ededed" stroke-width="1.5"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M19 12H5M5 12L12 5M5 12L12 19" />
+    </svg>
+    <span>{backLabel}</span>
+  </a>
+
+  <div class="sub-nav__links">
+    {links.map((link) => (
+      <a
+        href={link.href}
+        class:list={['sub-nav__link', { 'is-active': link.active }]}
+        aria-current={link.active ? 'page' : undefined}
+        data-nav
+      >
+        {link.label}
+      </a>
+    ))}
+    <a href={cmsAdminUrl} target="_blank" rel="noopener noreferrer" class="sub-nav__link sub-nav__link--cms" title="Open CMS Editorial Console">
+      <span class="sub-nav__cms-dot"></span>
+      cms
+    </a>
+    <a href={landingUrl} target="_blank" rel="noopener noreferrer" class="sub-nav__link sub-nav__link--cv" title="Open Portfolio Landing Page">
+      landing cv &nearr;
+    </a>
+  </div>
+
+  <div class="sub-nav__indicator" id="subNavIndicator">{indicator}</div>
+</nav>

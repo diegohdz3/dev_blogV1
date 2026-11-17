@@ -1,0 +1,146 @@
+---
+import BlogLayout from '../layouts/BlogLayout.astro';
+---
+<BlogLayout
+  title="Contact — Diego Cortés Hernandez · Dev Blog"
+  description="Got a project in mind or want to discuss an article? Let's talk."
+  activePage="contact"
+  indicator="04 / contact"
+  backHref="/"
+  backLabel="hub"
+>
+
+  <!-- ============================================================
+       SECTION 04: CONTACT (Exact dev_blog_pasado/html/contact.html + FormSubmit)
+       ============================================================ -->
+  <section class="contact subpage-hero" id="contact" data-section-indicator="04 / contact">
+    <div class="contact__bg" aria-hidden="true">
+      <div class="contact__grid-pattern"></div>
+      <div class="contact__scanlines"></div>
+      <div class="contact__scan-sweep"></div>
+      <div class="contact__vignette"></div>
+    </div>
+
+    <div class="contact__content">
+      <div class="contact__left">
+        <div class="contact__tag anim" data-anim="typewriter">
+          &lt; contact /&gt;
+        </div>
+
+        <h2 class="contact__heading">
+          <span class="heading-line anim" data-anim="clip-up" data-delay="0">
+            <span class="heading-line__inner">Let's build</span>
+          </span>
+          <span class="heading-line anim" data-anim="clip-up" data-delay="1">
+            <span class="heading-line__inner"><em>something</em></span>
+          </span>
+          <span class="heading-line anim" data-anim="clip-up" data-delay="2">
+            <span class="heading-line__inner"><em>together.</em></span>
+          </span>
+          <svg class="about__star anim" data-anim="star-burst" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+            <path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="#ececec" />
+          </svg>
+        </h2>
+
+        <p class="contact__desc anim" data-anim="blur-in" data-delay="3">
+          Got a project in mind? Want to<br />
+          collaborate or discuss an article?<br />
+          I'm always open to new ideas.
+        </p>
+      </div>
+
+      <div class="contact__right">
+        <form
+          class="contact__form"
+          id="contactForm"
+          action="https://formsubmit.co/253420@it2id.upchiapas.edu.mx"
+          method="POST"
+        >
+          <input type="hidden" name="_subject" value="New message from Diego's Dev Blog" />
+          <input type="hidden" name="_template" value="table" />
+
+          <div class="contact__field anim" data-anim="blur-in" data-delay="1">
+            <label class="contact__label" for="contactName">&gt; name_</label>
+            <input
+              class="contact__input"
+              type="text"
+              id="contactName"
+              name="name"
+              placeholder="your name here"
+              autocomplete="name"
+              required
+            />
+            <div class="contact__input-line"></div>
+          </div>
+
+          <div class="contact__field anim" data-anim="blur-in" data-delay="2">
+            <label class="contact__label" for="contactEmail">&gt; email_</label>
+            <input
+              class="contact__input"
+              type="email"
+              id="contactEmail"
+              name="email"
+              placeholder="your@email.com"
+              autocomplete="email"
+              required
+            />
+            <div class="contact__input-line"></div>
+          </div>
+
+          <div class="contact__field anim" data-anim="blur-in" data-delay="3">
+            <label class="contact__label" for="contactMessage">&gt; message_</label>
+            <textarea
+              class="contact__textarea"
+              id="contactMessage"
+              name="message"
+              placeholder="tell me about your idea..."
+              rows="5"
+              required
+            ></textarea>
+            <div class="contact__input-line"></div>
+          </div>
+
+          <div class="contact__submit-wrap anim" data-anim="blur-in" data-delay="4">
+            <button type="submit" class="contact__submit" id="contactSubmit" data-magnetic="0.18">
+              <span class="contact__submit-border">
+                <svg viewBox="0 0 280 60" preserveAspectRatio="none" aria-hidden="true">
+                  <rect x="1" y="1" width="278" height="58" rx="4" ry="4" />
+                </svg>
+              </span>
+              <span class="contact__submit-label">[ send message ]</span>
+              <span class="contact__submit-arrow">&rarr;</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="contact__socials anim" data-anim="blur-in" data-delay="5">
+      <a href="https://github.com/diegohdz3" target="_blank" rel="noopener noreferrer" class="contact__social-link">github</a>
+      <span class="contact__social-sep">/</span>
+      <a href="https://instagram.com/diego.hdzz_?mdxt=YzllZHFnMzk5cWcx&utm_source=qr" target="_blank" rel="noopener noreferrer" class="contact__social-link">instagram</a>
+      <span class="contact__social-sep">/</span>
+      <a href="mailto:253420@it2id.upchiapas.edu.mx" class="contact__social-link">253420@it2id.upchiapas.edu.mx</a>
+    </div>
+
+    <div class="contact__counter anim" data-anim="counter-reveal">
+      <div class="about__counter-line"></div>
+      <span class="about__counter-num">04</span>
+      <span class="about__counter-label">contact</span>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PAGE PAGER (dev_blog_pasado .next-page)
+       ============================================================ -->
+  <nav class="next-page" aria-label="Blog pages">
+    <a href="/certifications" class="next-page__link" data-nav>
+      <span class="next-page__arrow" aria-hidden="true">&larr;</span>
+      <span class="next-page__label">prev: certifications</span>
+    </a>
+    <a href="/" class="next-page__link" data-nav>
+      <span class="next-page__label">back to hub</span>
+      <span class="next-page__arrow" aria-hidden="true">&rarr;</span>
+    </a>
+  </nav>
+</BlogLayout>

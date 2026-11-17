@@ -1,0 +1,153 @@
+---
+import BlogLayout from '../layouts/BlogLayout.astro';
+import { tools, credentials } from '../data/site';
+---
+<BlogLayout
+  title="About — Diego Cortés Hernandez · Dev Blog"
+  description="The person behind the code: IT student, frontend & full-stack builder."
+  activePage="about"
+  indicator="03 / about"
+  backHref="/"
+  backLabel="hub"
+>
+
+  <!-- ============================================================
+       SECTION 03: ABOUT & CREDENTIALS (dev_blog_pasado/html/about.html + certifications.html + Landing Page)
+       ============================================================ -->
+  <section class="about subpage-hero" id="about" data-section-indicator="03 / about">
+    <div class="about__bg" data-parallax aria-hidden="true">
+      <div class="about__scanlines"></div>
+      <div class="about__scan-sweep"></div>
+      <div class="about__overlay"></div>
+    </div>
+
+    <div class="about__content">
+      <!-- Holographic Prism Identity Card (Replaces old mirror photo from dev_blog_pasado) -->
+      <figure class="about__portrait is-ready">
+        <div class="about__prism-emblem" aria-hidden="true">
+          <svg viewBox="0 0 260 220" class="about__prism-svg">
+            <defs>
+              <linearGradient id="emblemBeam" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#08f7fe" />
+                <stop offset="50%" stop-color="#ffb74d" />
+                <stop offset="100%" stop-color="#ff6b81" />
+              </linearGradient>
+            </defs>
+            <circle cx="130" cy="112" r="76" fill="none" stroke="rgba(255,255,255,0.08)" stroke-dasharray="4 4" />
+            <line x1="12" y1="132" x2="96" y2="108" stroke="#f5faff" stroke-width="2.2" />
+            <polygon points="130,44 74,158 186,158" fill="rgba(160,131,250,0.08)" stroke="url(#emblemBeam)" stroke-width="2" />
+            <line x1="164" y1="96" x2="248" y2="68" stroke="#ff304d" stroke-width="1.8" />
+            <line x1="168" y1="108" x2="248" y2="96" stroke="#ffb74d" stroke-width="1.8" />
+            <line x1="172" y1="120" x2="248" y2="124" stroke="#08f7fe" stroke-width="1.8" />
+            <line x1="176" y1="132" x2="248" y2="152" stroke="#a083fa" stroke-width="1.8" />
+          </svg>
+        </div>
+        <figcaption>
+          <span class="about__portrait-label">the person behind the code</span>
+          <strong>Hi, I'm Diego.</strong>
+          <span>IT student / frontend &amp; full-stack builder</span>
+          <span class="about__portrait-motto">Keep yourself alive. Time moves. I build.</span>
+        </figcaption>
+      </figure>
+
+      <div class="about__left">
+        <span class="about__eyebrow">/ a little about me</span>
+        <h2 class="about__heading">
+          <span class="heading-line anim" data-anim="clip-up" data-delay="0">
+            <span class="heading-line__inner">Building <em>ideas.</em></span>
+          </span>
+          <span class="heading-line anim" data-anim="clip-up" data-delay="1">
+            <span class="heading-line__inner">Making them <em>real.</em></span>
+          </span>
+          <svg class="about__star anim" data-anim="star-burst" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+            <path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="#ececec" />
+          </svg>
+        </h2>
+
+        <p class="about__bio anim" data-anim="blur-in" data-delay="2">
+          I'm <strong>Diego Cortés Hernandez</strong>, an IT student focused on web and mobile development,
+          with a particular passion for <strong>frontend architecture and interactive interfaces</strong>.
+          Recently, I've led both the visual design direction and the backend architecture of my team and solo projects,
+          giving me a full-spectrum view of how ideas become real systems.
+        </p>
+
+        <div class="about__cta anim" data-anim="blur-in" data-delay="3">
+          <a href="http://localhost:4321" target="_blank" rel="noopener noreferrer" class="about__btn" data-magnetic="0.18">
+            <span class="about__btn-border">
+              <svg viewBox="0 0 280 60" preserveAspectRatio="none" aria-hidden="true">
+                <rect x="1" y="1" width="278" height="58" rx="4" ry="4" />
+              </svg>
+            </span>
+            <span class="about__btn-label">[ open full landing cv ]</span>
+            <span class="about__btn-arrow">&nearr;</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="about__right">
+        <div class="about__stack anim" data-anim="blur-in" data-delay="3">
+          <h3 class="about__detail-heading">Tools I work with</h3>
+          <div class="about__stack-items">
+            {tools.map((tool) => <span class="about__stack-item">{tool}</span>)}
+          </div>
+        </div>
+
+        <div class="about__status anim" data-anim="blur-in" data-delay="4">
+          <h3 class="about__detail-heading">Current focus</h3>
+          <div class="about__status-row">
+            <span class="about__status-key">&gt; status_</span>
+            <span class="about__status-val">IT student</span>
+          </div>
+          <div class="about__status-row">
+            <span class="about__status-key">&gt; focus_</span>
+            <span class="about__status-val">frontend &amp; full-stack</span>
+          </div>
+          <div class="about__status-row">
+            <span class="about__status-key">&gt; learning_</span>
+            <span class="about__status-val">always</span>
+          </div>
+          <div class="about__status-row">
+            <span class="about__status-key">&gt; open_to_</span>
+            <span class="about__status-val">internships &amp; junior roles</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="about__certs-block about__certs-teaser">
+        <div class="about__certs-header">
+          <span class="about__credentials-label">/ continued learning &amp; verified credentials</span>
+          <strong>Courses &amp; certifications</strong>
+        </div>
+        <a href="/certifications" class="about__btn" data-nav data-magnetic="0.18">
+          <span class="about__btn-border">
+            <svg viewBox="0 0 280 60" preserveAspectRatio="none" aria-hidden="true">
+              <rect x="1" y="1" width="278" height="58" rx="4" ry="4" />
+            </svg>
+          </span>
+          <span class="about__btn-label">[ view {credentials.length} verified credentials ]</span>
+          <span class="about__btn-arrow">&rarr;</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="about__counter anim" data-anim="counter-reveal">
+      <div class="about__counter-line"></div>
+      <span class="about__counter-num">03</span>
+      <span class="about__counter-label">about</span>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PAGE PAGER (dev_blog_pasado .next-page)
+       ============================================================ -->
+  <nav class="next-page" aria-label="Blog pages">
+    <a href="/projects" class="next-page__link" data-nav>
+      <span class="next-page__arrow" aria-hidden="true">&larr;</span>
+      <span class="next-page__label">prev: projects</span>
+    </a>
+    <a href="/certifications" class="next-page__link" data-nav>
+      <span class="next-page__label">next: certifications</span>
+      <span class="next-page__arrow" aria-hidden="true">&rarr;</span>
+    </a>
+  </nav>
+</BlogLayout>

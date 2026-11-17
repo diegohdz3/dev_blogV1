@@ -1,0 +1,211 @@
+{
+  "job_id": "01a1acbc-80ee-7e56-89b8-c3755a80ed96",
+  "build_id": "01a1acbc-80ee-7e56-89b8-c3755a80ed96",
+  "trigger_reason": "INITIAL_PUBLISH",
+  "exported_at": "2026-11-05T17:23:17.358Z",
+  "sha256_checksum": "7dcf9a3563eab6bbdcac6ea520003c3b3d0f426a554eb181a95f880229121cb8",
+  "artifact_path": "C:\\Users\\dcort\\WebstormProjects\\IDEAS\\cms\\snapshots\\artifacts\\01a1acbc-80ec-79e2-952a-24efcce57f8d.html",
+  "worker_url": "http://127.0.0.1:8001",
+  "document": {
+    "document_id": "01a1acbc-80ec-79e2-952a-24efcce57f8d",
+    "slug": "fullstack-with-a-broken-heart",
+    "title": "Full-Stack with a Broken Heart",
+    "content_type": "DEV_BLOG",
+    "status": "PUBLICADO",
+    "template_id": "01a1acbc-80b7-703e-af7a-19b3de7ef5dd",
+    "frozen_template": {
+      "template_id": "01a1acbc-80b7-703e-af7a-19b3de7ef5dd",
+      "name": "Plantilla Bitacora Tecnica y Case Study",
+      "allow_published_edit": false,
+      "metadata_contract": [
+        {
+          "field_key": "reading_time",
+          "expected_type": "INT",
+          "is_required": true
+        },
+        {
+          "field_key": "canonical_tag",
+          "expected_type": "STRING",
+          "is_required": true
+        },
+        {
+          "field_key": "role_summary",
+          "expected_type": "STRING",
+          "is_required": true
+        },
+        {
+          "field_key": "repo_url",
+          "expected_type": "STRING",
+          "is_required": false
+        }
+      ],
+      "layout_structure": {
+        "regions": [
+          "header",
+          "case_hero",
+          "overview",
+          "timeline",
+          "main_canvas",
+          "learnings",
+          "footer"
+        ],
+        "theme_variant": "prism-editorial-blog"
+      },
+      "frozen_at": "2026-11-05T17:23:17.357Z"
+    },
+    "metadata_values": {
+      "reading_time": 6,
+      "canonical_tag": "personal",
+      "role_summary": "Personal Reflection on Resilience & Building"
+    },
+    "canvas_blocks": [
+      {
+        "block_id": "01a1acbc-80eb-73dc-98e6-d7677c7a1bdf",
+        "block_type": "CASE_HERO",
+        "order_index": 1,
+        "content_payload": {
+          "tag": "< thought / 03 />",
+          "counter_num": "02.3",
+          "counter_label": "personal",
+          "title": "Full-Stack with",
+          "subtitle": "a Broken Heart.",
+          "category": "/ personal",
+          "date": "Sep 01, 2026",
+          "lead": "What happens when your personal life falls apart and you still have a system to deliver. On code, heartbreak, and finding yourself in the process."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80eb-73dd-9488-89985b6e1a77",
+        "block_type": "HEADING",
+        "order_index": 2,
+        "content_payload": {
+          "level": 2,
+          "eyebrow": "/ context",
+          "text": "The semester that changed everything."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80eb-73de-86c2-b9ba1762c245",
+        "block_type": "PARAGRAPH",
+        "order_index": 3,
+        "content_payload": {
+          "text": "It was supposed to be a normal semester. I had a full-stack project due, a team counting on me, and deadlines that weren't going to move for anyone. Then everything fell apart — not the code, but my life outside of it. A relationship I cared deeply about ended, and suddenly I was sitting in front of my screen, staring at a database schema, while my mind was somewhere else entirely.\n\nI'm writing this not for sympathy, but because I think it's important to talk about the human side of building software. We love to share our tech stacks and clean code, but we rarely talk about what it's like to code when you're barely holding it together."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80eb-73df-8d3b-21163d8e84bc",
+        "block_type": "HEADING",
+        "order_index": 4,
+        "content_payload": {
+          "level": 2,
+          "eyebrow": "/ the struggle",
+          "text": "When focus becomes impossible."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80ec-79d7-8ffa-a433e384f7ae",
+        "block_type": "PARAGRAPH",
+        "order_index": 5,
+        "content_payload": {
+          "text": "The first few days were brutal. I would open my editor, write three lines, then stare at the blinking cursor for twenty minutes. My brain was running two processes at once — one trying to debug a route handler, the other replaying every conversation, every moment, every \"what if.\"\n\nConcentration? Gone. Motivation? Nowhere to be found. I remember pushing a commit at 3 AM that was basically an empty function with a comment that said // TODO: figure this out later. That comment was not just about the code."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80ec-79d8-b1bc-3f934b8e3b59",
+        "block_type": "QUOTE",
+        "order_index": 6,
+        "content_payload": {
+          "text": "Sometimes the hardest bug to fix isn't in your code — it's in your head."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80ec-79d9-ba73-cde950e2e39a",
+        "block_type": "HEADING",
+        "order_index": 7,
+        "content_payload": {
+          "level": 2,
+          "eyebrow": "/ the turning point",
+          "text": "Code became my therapy."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80ec-79da-ab8c-3d4def3dfa74",
+        "block_type": "PARAGRAPH",
+        "order_index": 8,
+        "content_payload": {
+          "text": "Something shifted after a couple of weeks. I stopped trying to force myself to \"be productive\" and started using code as a way to quiet my mind. Instead of fighting my emotions, I channeled them. Every endpoint I built, every table I designed, every bug I fixed — it all became a small victory in a period where victories felt impossible.\n\nThere is something strangely therapeutic about structured thinking when your emotional life is chaos. SQL does not care about your feelings. The compiler does not know you are heartbroken. And somehow, that objectivity became comforting. The code either works or it does not. No ambiguity. No mixed signals. Just logic."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80ec-79db-8c62-96c958fe11d7",
+        "block_type": "HEADING",
+        "order_index": 9,
+        "content_payload": {
+          "level": 2,
+          "eyebrow": "/ the work",
+          "text": "Building something real."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80ec-79dc-8864-2fdea3e2803b",
+        "block_type": "PARAGRAPH",
+        "order_index": 10,
+        "content_payload": {
+          "text": "I poured myself into the backend. Late nights designing the database, early mornings testing API endpoints, afternoons debugging CORS issues that made me want to throw my laptop out the window. But every small piece that clicked into place gave me a sense of control that I desperately needed.\n\nThe project itself — a full-stack management system — became more than just coursework. It became proof that I could still create something meaningful, even when I felt like everything meaningful had been taken away. The frontend did not know about my pain. The database did not care about my sleepless nights. But the finished product? That was mine."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80ec-79dd-b9a1-3700d96d31df",
+        "block_type": "HEADING",
+        "order_index": 11,
+        "content_payload": {
+          "level": 2,
+          "eyebrow": "/ the lesson",
+          "text": "What I took away."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80ec-79de-9e75-73c1ee93b8bd",
+        "block_type": "PARAGRAPH",
+        "order_index": 12,
+        "content_payload": {
+          "text": "I delivered the project on time. It wasn't perfect — some features were rushed, some code could've been cleaner — but it was complete. And more importantly, I was still standing.",
+          "list": [
+            "You don't need to be okay to do good work. Sometimes you just need to keep showing up.",
+            "Progress is healing. Building something tangible when your world feels intangible is more powerful than you think.",
+            "It's okay to struggle. The myth that developers are emotionless productivity machines is exactly that — a myth.",
+            "Your work is yours. Relationships can end, circumstances can change, but what you build stays."
+          ]
+        }
+      },
+      {
+        "block_id": "01a1acbc-80ec-79df-9fb1-af285b16df15",
+        "block_type": "HEADING",
+        "order_index": 13,
+        "content_payload": {
+          "level": 2,
+          "eyebrow": "/ closing",
+          "text": "Keep yourself alive."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80ec-79e0-91d4-7e87ff80b09f",
+        "block_type": "PARAGRAPH",
+        "order_index": 14,
+        "content_payload": {
+          "text": "If you're reading this and you're going through something similar — a breakup, a loss, a rough patch — and you still have code to write and deadlines to meet: I see you. It's hard. It's messy. And some days the cursor just blinks and nothing comes out.\n\nBut keep going. Not because the project matters more than your feelings, but because the act of creating something — anything — when everything feels broken is one of the bravest things you can do.\n\nKeep yourself alive. Keep building. The rest will follow."
+        }
+      },
+      {
+        "block_id": "01a1acbc-80ec-79e1-a0ee-96ad548e7fde",
+        "block_type": "QUOTE",
+        "order_index": 15,
+        "content_payload": {
+          "text": "The code compiles, the heart rebuilds. Both take time."
+        }
+      }
+    ],
+    "published_at": "2026-11-05T17:23:17.357Z",
+    "updated_at": "2026-11-05T17:23:17.357Z"
+  }
+}

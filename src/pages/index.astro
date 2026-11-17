@@ -1,0 +1,141 @@
+---
+import BlogLayout from '../layouts/BlogLayout.astro';
+import { getPublishedBlogArticles } from '../lib/cms';
+
+const articles = await getPublishedBlogArticles();
+---
+<BlogLayout
+  title="Diego Cortés Hernandez — Dev Blog & Thoughts"
+  description="Dev Blog, engineering notes, tutorials, and personal reflections by Diego Cortés Hernandez — IT Student & Developer."
+  activePage="home"
+  indicator="00 / spectrum hub"
+  backHref="http://localhost:4321"
+  backLabel="landing cv"
+>
+
+  <!-- ============================================================
+       SECTION 00: SPATIAL HUB HERO (dev_blog_pasado/index.html + 3D Prism)
+       ============================================================ -->
+  <section class="hero" id="hub" data-section-indicator="00 / spectrum hub">
+    <div class="hero__bg is-ready" aria-hidden="true">
+      <div class="hero__scanlines"></div>
+      <div class="hero__grain"></div>
+      <div class="hero__vignette"></div>
+    </div>
+
+    <div class="nav-tl reveal">
+      &lt; dev / blog / thoughts /&gt;<br />
+      <span class="cursor">_</span>
+    </div>
+
+    <div class="brand reveal" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="#ececec" />
+      </svg>
+    </div>
+
+    <div class="taglist reveal">
+      . build<br />
+      . refract<br />
+      . write
+    </div>
+
+    <h1 class="name reveal">
+      <span class="name-glitch">Diego Cortés Hernandez</span>
+    </h1>
+
+    <div class="role reveal">
+      Dev Blog &amp; Notes
+      <svg viewBox="0 0 180 16" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M2,7 C40,2 90,11 140,5 C155,3 168,7 176,5" />
+      </svg>
+    </div>
+
+    <div class="tagline reveal">
+      All that you touch and all that you see.<br />
+      <span class="tagline__sub">No sacrifice, no coding.</span>
+    </div>
+
+    <!-- ============================================================
+         HUB NAVIGATION BUTTONS (SVG self-drawing borders + magnetic + glitch)
+         ============================================================ -->
+    <div class="hub-nav reveal" id="hubNav">
+      <a href="/thoughts" class="hub-nav__btn" data-nav data-prism-hover="tutorials">
+        <span class="hub-nav__icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ededed" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+        </span>
+        <span class="hub-nav__label">thoughts ({String(articles.length).padStart(2, '0')})</span>
+        <span class="hub-nav__arrow">&rarr;</span>
+        <svg class="hub-nav__border" viewBox="0 0 200 50" preserveAspectRatio="none" aria-hidden="true">
+          <rect x="1" y="1" width="198" height="48" rx="3" ry="3" />
+        </svg>
+      </a>
+
+      <a href="/projects" class="hub-nav__btn" data-nav data-prism-hover="architecture">
+        <span class="hub-nav__icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ededed" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" />
+          </svg>
+        </span>
+        <span class="hub-nav__label">projects</span>
+        <span class="hub-nav__arrow">&rarr;</span>
+        <svg class="hub-nav__border" viewBox="0 0 200 50" preserveAspectRatio="none" aria-hidden="true">
+          <rect x="1" y="1" width="198" height="48" rx="3" ry="3" />
+        </svg>
+      </a>
+
+      <a href="/about" class="hub-nav__btn" data-nav data-prism-hover="opinions">
+        <span class="hub-nav__icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ededed" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 21v-1a6 6 0 0 1 12 0v1" />
+          </svg>
+        </span>
+        <span class="hub-nav__label">about me</span>
+        <span class="hub-nav__arrow">&rarr;</span>
+        <svg class="hub-nav__border" viewBox="0 0 200 50" preserveAspectRatio="none" aria-hidden="true">
+          <rect x="1" y="1" width="198" height="48" rx="3" ry="3" />
+        </svg>
+      </a>
+
+      <a href="/contact" class="hub-nav__btn" data-nav data-prism-hover="personal">
+        <span class="hub-nav__icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ededed" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <path d="M22 4L12 13 2 4" />
+          </svg>
+        </span>
+        <span class="hub-nav__label">contact</span>
+        <span class="hub-nav__arrow">&rarr;</span>
+        <svg class="hub-nav__border" viewBox="0 0 200 50" preserveAspectRatio="none" aria-hidden="true">
+          <rect x="1" y="1" width="198" height="48" rx="3" ry="3" />
+        </svg>
+      </a>
+    </div>
+
+    <div class="hub-hint reveal">
+      <svg class="hub-hint__arrow" viewBox="0 0 60 60" aria-hidden="true">
+        <path d="M48,8 C32,12 18,26 16,48 M16,48 L10,38 M16,48 L26,40" />
+      </svg>
+      <span class="hub-hint__text">
+        choose a frequency &mdash; or play with the prism ↘
+      </span>
+    </div>
+
+    <div class="explore-world reveal">
+      Explore<br />
+      &nbsp;my world.
+    </div>
+
+    <div class="footer-tag reveal">
+      [ coding / learning / building &middot; cms_core_v1 ]
+    </div>
+  </section>
+</BlogLayout>

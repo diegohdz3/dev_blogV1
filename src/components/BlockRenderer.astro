@@ -1,0 +1,331 @@
+---
+import type { CmsCanvasBlock } from '../lib/cms';
+
+interface Props {
+  blocks: CmsCanvasBlock[];
+}
+
+const { blocks } = Astro.props;
+const contentBlocks = blocks.filter((b) => b.block_type !== 'CASE_HERO');
+
+// Group atomic editorial blocks (HEADING + following PARAGRAPH/CODE/QUOTE/CALLOUT)
+// into unified .th-article__section blocks just like dev_blog_pasado, while keeping
+// structural Case Study blocks (OVERVIEW_SECTION, TIMELINE_SECTION, CHALLENGE_CARDS) distinct.
+interface RenderGroup {
+  kind: 'editorial_section' | 'overview' | 'timeline' | 'challenges' | 'standalone_code';
+  sectionId: string;
+  eyebrow?: string;
+  heading?: string;
+  items: CmsCanvasBlock[];
+  rawBlock?: CmsCanvasBlock;
+}
+
+const groups: RenderGroup[] = [];
+let currentEditorial: RenderGroup | null = null;
+
+for (const block of contentBlocks) {
+  if (block.block_type === 'OVERVIEW_SECTION') {
+    currentEditorial = null;
+    groups.push({
+      kind: 'overview',
+      sectionId: `section-${block.order_index}`,
+      rawBlock: block,
+      items: [],
+    });
+  } else if (block.block_type === 'TIMELINE_SECTION') {
+    currentEditorial = null;
+    groups.push({
+      kind: 'timeline',
+      sectionId: `section-${block.order_index}`,
+      rawBlock: block,
+      items: [],
+    });
+  } else if (block.block_type === 'CHALLENGE_CARDS') {
+    currentEditorial = null;
+    groups.push({
+      kind: 'challenges',
+      sectionId: `section-${block.order_index}`,
+      rawBlock: block,
+      items: [],
+    });
+  } else if (block.block_type === 'HEADING' && Number(block.content_payload?.level) !== 3) {
+    currentEditorial = {
+      kind: 'editorial_section',
+      sectionId: `section-${block.order_index}`,
+      eyebrow: block.content_payload?.eyebrow || `/ section 0${groups.length + 1}`,
+      heading: String(block.content_payload?.text || ''),
+      items: [],
+    };
+    groups.push(currentEditorial);
+  } else {
+    if (!currentEditorial) {
+      currentEditorial = {
+        kind: 'editorial_section',
+        sectionId: `section-${block.order_index}`,
+        eyebrow: block.content_payload?.eyebrow || `/ notes`,
+        heading: block.content_payload?.heading ? String(block.content_payload.heading) : undefined,
+        items: [],
+      };
+      groups.push(currentEditorial);
+    }
+    currentEditorial.items.push(block);
+  }
+}
+
+function splitHeadingEmphasis(text: string): { before: string; em: string } {
+  const trimmed = text.trim();
+  const words = trimmed.split(/\s+/);
+  if (words.length <= 1) {
+    return { before: '', em: trimmed };
+  }
+  const em = words.pop()!;
+  return { before: `${words.join(' ')} `, em };
+}
+---
+<div class="th-article">
+  {groups.map((group, idx) => {
+    const isAlt = idx % 2 === 1;
+
+    if (group.kind === 'overview' && group.rawBlock) {
+      const payload = group.rawBlock.content_payload || {};
+      const paragraphs = String(payload.text || '').split(/\n\n+/).filter(Boolean);
+      const { before, em } = splitHeadingEmphasis(String(payload.heading || 'Overview'));
+      return (
+        <section class:list={['pj-section', { 'pj-section--dark': isAlt }]} id={group.sectionId}>
+          <div class="pj-section__grid">
+            <div class="pj-section__left">
+              <span class="pj-section__eyebrow anim" data-anim="blur-in">
+                {payload.eyebrow || '/ overview'}
+              </span>
+              <h2 class="pj-section__heading anim" data-anim="blur-in" data-delay="1">
+                {before}<em>{em}</em>
+              </h2>
+            </div>
+            <div class="pj-section__right">
+              {paragraphs.map((p: string, pIdx: number) => (
+                <p class="pj-section__text anim" data-anim="blur-in" data-delay={Math.min(4, pIdx + 2)}>
+                  {p}
+                </p>
+              ))}
+              {Array.isArray(payload.facts) && payload.facts.length > 0 && (
+                <div class="pj-section__details anim" data-anim="blur-in" data-delay="4">
+                  {payload.facts.map((fact: { key: string; val: string }) => (
+                    <div class="pj-section__detail">
+                      <span class="pj-section__detail-key">&gt; {fact.key}_</span>
+                      <span class="pj-section__detail-val">{fact.val}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    if (group.kind === 'timeline' && group.rawBlock) {
+      const payload = group.rawBlock.content_payload || {};
+      const { before, em } = splitHeadingEmphasis(String(payload.heading || 'The development process.'));
+      return (
+        <section class="pj-section pj-section--dark" id="timeline">
+          <div class="pj-section__grid pj-section__grid--full">
+            <div class="pj-section__left">
+              <span class="pj-section__eyebrow anim" data-anim="blur-in">
+                {payload.eyebrow || '/ timeline'}
+              </span>
+              <h2 class="pj-section__heading anim" data-anim="blur-in" data-delay="1">
+                {before}<em>{em}</em>
+              </h2>
+            </div>
+          </div>
+
+          {Array.isArray(payload.phases) && (
+            <div class="pj-timeline">
+              <div class="pj-timeline__line"></div>
+              {payload.phases.map((phase: { phase: string; title: string; desc: string }, pIdx: number) => (
+                <div class="pj-timeline__item anim" data-anim="blur-in" data-delay={Math.min(4, pIdx + 1)}>
+                  <div class="pj-timeline__marker">
+                    <span class="pj-timeline__dot"></span>
+                  </div>
+                  <div class="pj-timeline__card">
+                    <span class="pj-timeline__phase">{phase.phase}</span>
+                    <h3 class="pj-timeline__title">{phase.title}</h3>
+                    <p class="pj-timeline__desc">{phase.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      );
+    }
+
+    if (group.kind === 'challenges' && group.rawBlock) {
+      const payload = group.rawBlock.content_payload || {};
+      const { before, em } = splitHeadingEmphasis(String(payload.heading || 'What I learned.'));
+      return (
+        <section class:list={['pj-section', { 'pj-section--dark': isAlt }]} id={group.sectionId}>
+          <div class="pj-section__grid">
+            <div class="pj-section__left">
+              <span class="pj-section__eyebrow anim" data-anim="blur-in">
+                {payload.eyebrow || '/ challenges'}
+              </span>
+              <h2 class="pj-section__heading anim" data-anim="blur-in" data-delay="1">
+                {before}<em>{em}</em>
+              </h2>
+            </div>
+            <div class="pj-section__right">
+              {Array.isArray(payload.cards) && (
+                <div class="pj-challenges">
+                  {payload.cards.map((card: { title: string; text: string }, cIdx: number) => (
+                    <div class="pj-challenge anim" data-anim="blur-in" data-delay={Math.min(4, cIdx + 2)}>
+                      <div class="pj-challenge__icon">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+                          stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          {cIdx % 3 === 0 && (
+                            <>
+                              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                              <path d="M2 17l10 5 10-5" />
+                              <path d="M2 12l10 5 10-5" />
+                            </>
+                          )}
+                          {cIdx % 3 === 1 && (
+                            <>
+                              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                              <circle cx="9" cy="7" r="4" />
+                              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </>
+                          )}
+                          {cIdx % 3 === 2 && (
+                            <>
+                              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                              <line x1="8" y1="21" x2="16" y2="21" />
+                              <line x1="12" y1="17" x2="12" y2="21" />
+                            </>
+                          )}
+                        </svg>
+                      </div>
+                      <div class="pj-challenge__body">
+                        <h3 class="pj-challenge__title">{card.title}</h3>
+                        <p class="pj-challenge__text">{card.text}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // Standard editorial section (.th-article__section / .th-article__section--alt from dev_blog_pasado)
+    const headingParts = group.heading ? splitHeadingEmphasis(group.heading) : null;
+    return (
+      <section
+        class:list={['th-article__section', { 'th-article__section--alt': isAlt }]}
+        id={group.sectionId}
+      >
+        <div class="th-article__block">
+          {group.eyebrow && (
+            <span class="pj-section__eyebrow anim" data-anim="blur-in">
+              {group.eyebrow}
+            </span>
+          )}
+          {headingParts && (
+            <h2 class="th-article__heading anim" data-anim="blur-in" data-delay="1">
+              {headingParts.before}<em>{headingParts.em}</em>
+            </h2>
+          )}
+
+          <div class="th-article__body anim" data-anim="blur-in" data-delay="2">
+            {group.items.map((item) => {
+              const p = item.content_payload || {};
+
+              if (item.block_type === 'HEADING') {
+                return <h3 class="th-article__subheading">{String(p.text || '')}</h3>;
+              }
+
+              if (item.block_type === 'PARAGRAPH') {
+                if (p.divider) {
+                  return <hr class="th-article__divider" />;
+                }
+                const paras = String(p.text || '').split(/\n\n+/).filter(Boolean);
+                const listItems = Array.isArray(p.list) ? p.list : [];
+                const rawHtml = typeof p.html === 'string'
+                  ? p.html.replace(/<\/?(?!(?:strong|b|em|i|code|a|br)\b)[^>]*>/gi, '')
+                  : '';
+                return (
+                  <>
+                    {rawHtml ? (
+                      <p set:html={rawHtml} />
+                    ) : (
+                      paras.map((para: string) => <p>{para}</p>)
+                    )}
+                    {listItems.length > 0 && (
+                      p.ordered ? (
+                        <ol class="th-article__list th-article__list--ordered">
+                          {listItems.map((li: string) => <li>{li}</li>)}
+                        </ol>
+                      ) : (
+                        <ul class="th-article__list">
+                          {listItems.map((li: string) => <li>{li}</li>)}
+                        </ul>
+                      )
+                    )}
+                  </>
+                );
+              }
+
+              if (item.block_type === 'CODE') {
+                return (
+                  <div class="th-article__code">
+                    <div class="th-article__code-header">
+                      <span class="th-article__code-lang">{p.language || 'code'}</span>
+                      <div class="th-article__code-actions">
+                        {p.filename && <span class="th-article__code-file">{p.filename}</span>}
+                        <button type="button" class="th-article__code-copy" data-copy-code>
+                          [ copy ]
+                        </button>
+                      </div>
+                    </div>
+                    <pre><code>{p.code}</code></pre>
+                  </div>
+                );
+              }
+
+              if (item.block_type === 'IMAGE_GALLERY') {
+                const imgs = Array.isArray(p.images) ? p.images : [];
+                return imgs
+                  .filter((img: { url?: string }) => img?.url)
+                  .map((img: { url: string; caption?: string }) => (
+                    <figure class="th-article__figure">
+                      <img src={img.url} alt={img.caption || ''} loading="lazy" />
+                      {img.caption && <figcaption>{img.caption}</figcaption>}
+                    </figure>
+                  ));
+              }
+
+              if (item.block_type === 'QUOTE' || item.block_type === 'CALLOUT') {
+                const isWarn = item.block_type === 'CALLOUT' && p.tone === 'warning';
+                return (
+                  <div class:list={['th-article__callout', 'anim', { 'th-article__callout--warning': isWarn }]} data-anim="blur-in" data-delay="3">
+                    <div class="th-article__callout-line"></div>
+                    <blockquote>
+                      {item.block_type === 'CALLOUT'
+                        ? (p.text || p.message || p.quote)
+                        : <>&ldquo;{p.text || p.quote}&rdquo;</>}
+                    </blockquote>
+                  </div>
+                );
+              }
+
+              return null;
+            })}
+          </div>
+        </div>
+      </section>
+    );
+  })}
+</div>

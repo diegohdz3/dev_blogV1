@@ -1,0 +1,253 @@
+---
+import BlogLayout from '../layouts/BlogLayout.astro';
+import ThoughtThread from '../components/ThoughtThread.astro';
+import { getPublishedBlogArticles } from '../lib/cms';
+
+const articles = await getPublishedBlogArticles();
+
+const tutorials = articles.filter((a) => a.category === 'tutorials');
+const opinions = articles.filter((a) => a.category === 'opinions');
+const personal = articles.filter((a) => a.category === 'personal');
+const architecture = articles.filter((a) => a.category === 'architecture');
+const pinnedArticle = articles[0] || null;
+---
+<BlogLayout
+  title="Thoughts — Diego Cortés Hernandez · Dev Blog"
+  description="Tutorials, opinions, personal reflections and case studies — every article published from cms-core-api."
+  activePage="thoughts"
+  indicator="01 / thoughts"
+  backHref="/"
+  backLabel="hub"
+>
+
+  <!-- ============================================================
+       SECTION 01: THOUGHTS (Exact dev_blog_pasado/html/thoughts.html + CMS Live)
+       ============================================================ -->
+  <section class="thoughts subpage-hero" id="thoughts" data-section-indicator="01 / thoughts">
+    <div class="thoughts__bg" aria-hidden="true">
+      <div class="thoughts__bg-overlay"></div>
+      <div class="thoughts__grid-pattern"></div>
+      <div class="thoughts__scanlines"></div>
+      <div class="thoughts__scan-sweep"></div>
+    </div>
+
+    <div class="thoughts__layout">
+      <div class="thoughts__left">
+        <div class="thoughts__tag anim" data-anim="typewriter">
+          &lt; thoughts /&gt;
+        </div>
+
+        <h2 class="thoughts__heading">
+          <span class="heading-line anim" data-anim="clip-up" data-delay="0">
+            <span class="heading-line__inner">Ideas, reflections</span>
+          </span>
+          <span class="heading-line anim" data-anim="clip-up" data-delay="1">
+            <span class="heading-line__inner"><em>and random</em></span>
+          </span>
+          <span class="heading-line anim" data-anim="clip-up" data-delay="2">
+            <span class="heading-line__inner"><em>thoughts.</em></span>
+          </span>
+          <svg class="about__star anim" data-anim="star-burst" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+            <path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="#ececec" />
+          </svg>
+        </h2>
+
+        <p class="thoughts__desc anim" data-anim="blur-in" data-delay="2">
+          Things I think about when I'm coding and when I'm not.
+          On discipline, software architecture, human psychology,
+          and the little wins that actually matter.
+        </p>
+
+        <div class="thoughts__meta anim" data-anim="slide-left" data-delay="1">
+          <span>/ tutorials</span>
+          <span>/ opinions</span>
+          <span>/ personal</span>
+          <span>/ case studies</span>
+        </div>
+
+        <div class="thoughts__pinned anim" data-anim="blur-in" data-delay="3">
+          <div class="thoughts__pinned-label">&gt; pinned_thought</div>
+          <blockquote class="thoughts__pinned-quote">
+            &ldquo;The code compiles, but the real question is &mdash; did you learn something today?&rdquo;
+          </blockquote>
+          {pinnedArticle && (
+            <a href={`/blog/${pinnedArticle.slug}`} class="thoughts__pinned-link" data-nav>
+              <span>latest: {pinnedArticle.title}</span>
+              <span aria-hidden="true">&rarr;</span>
+            </a>
+          )}
+        </div>
+
+        <div class="thoughts__tagline anim" data-anim="blur-in" data-delay="4">
+          learn / think / share
+        </div>
+      </div>
+
+      <div class="thoughts__right">
+        <!-- ======= CATEGORY TABS (Tunes the 3D Prism wavelength on click!) ======= -->
+        <div class="thoughts__tabs anim" data-anim="blur-in" data-delay="1" role="tablist" aria-label="Thought categories">
+          <button class="thoughts__tab is-active" data-tab="all" id="tabAll" role="tab" aria-selected="true">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="12 2 2 7 12 12 22 7 12 2" />
+              <polyline points="2 17 12 22 22 17" />
+              <polyline points="2 12 12 17 22 12" />
+            </svg>
+            <span>all threads</span>
+            <span class="thoughts__tab-count">{String(articles.length).padStart(2, '0')}</span>
+          </button>
+
+          <button class="thoughts__tab" data-tab="tutorials" id="tabTutorials" role="tab" aria-selected="false">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
+              <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
+            </svg>
+            <span>tutoriales</span>
+            <span class="thoughts__tab-count">{String(tutorials.length).padStart(2, '0')}</span>
+          </button>
+
+          <button class="thoughts__tab" data-tab="opinions" id="tabOpinions" role="tab" aria-selected="false">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+            </svg>
+            <span>opiniones / ideas</span>
+            <span class="thoughts__tab-count">{String(opinions.length).padStart(2, '0')}</span>
+          </button>
+
+          <button class="thoughts__tab" data-tab="personal" id="tabPersonal" role="tab" aria-selected="false">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+            </svg>
+            <span>personal / profesional</span>
+            <span class="thoughts__tab-count">{String(personal.length).padStart(2, '0')}</span>
+          </button>
+
+          <button class="thoughts__tab" data-tab="architecture" id="tabArchitecture" role="tab" aria-selected="false">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="16 18 22 12 16 6" />
+              <polyline points="8 6 2 12 8 18" />
+            </svg>
+            <span>case studies</span>
+            <span class="thoughts__tab-count">{String(architecture.length).padStart(2, '0')}</span>
+          </button>
+        </div>
+
+        <!-- ======= TAB PANELS ======= -->
+        <div class="thoughts__panels">
+          <!-- PANEL: All -->
+          <div class="thoughts__panel is-active panel-enter" data-panel="all" id="panelAll">
+            <div class="thoughts__panel-header">
+              <div class="thoughts__panel-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                  <polyline points="2 17 12 22 22 17" />
+                  <polyline points="2 12 12 17 22 12" />
+                </svg>
+              </div>
+              <div class="thoughts__panel-info">
+                <span class="thoughts__panel-title">&gt; all_threads // full spectrum</span>
+                <span class="thoughts__panel-subtitle">every published article &amp; case study from cms-core-api</span>
+              </div>
+            </div>
+            <div class="thoughts__feed">
+              {articles.map((article, idx) => <ThoughtThread article={article} index={idx} />)}
+            </div>
+          </div>
+
+          <!-- PANEL: Tutoriales -->
+          <div class="thoughts__panel" data-panel="tutorials" id="panelTutorials">
+            <div class="thoughts__panel-header">
+              <div class="thoughts__panel-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
+                </svg>
+              </div>
+              <div class="thoughts__panel-info">
+                <span class="thoughts__panel-title">&gt; tutoriales // λ 490nm cyan</span>
+                <span class="thoughts__panel-subtitle">step-by-step guides &amp; backend engineering how-tos</span>
+              </div>
+            </div>
+            <div class="thoughts__feed">
+              {tutorials.map((article, idx) => <ThoughtThread article={article} index={idx} />)}
+            </div>
+          </div>
+
+          <!-- PANEL: Opiniones / Ideas -->
+          <div class="thoughts__panel" data-panel="opinions" id="panelOpinions">
+            <div class="thoughts__panel-header">
+              <div class="thoughts__panel-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                </svg>
+              </div>
+              <div class="thoughts__panel-info">
+                <span class="thoughts__panel-title">&gt; opiniones / ideas // λ 590nm amber</span>
+                <span class="thoughts__panel-subtitle">takes on tech, human cognition &amp; everything in between</span>
+              </div>
+            </div>
+            <div class="thoughts__feed">
+              {opinions.map((article, idx) => <ThoughtThread article={article} index={idx} />)}
+            </div>
+          </div>
+
+          <!-- PANEL: Personal / Profesional -->
+          <div class="thoughts__panel" data-panel="personal" id="panelPersonal">
+            <div class="thoughts__panel-header">
+              <div class="thoughts__panel-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                </svg>
+              </div>
+              <div class="thoughts__panel-info">
+                <span class="thoughts__panel-title">&gt; personal / profesional // λ 650nm crimson</span>
+                <span class="thoughts__panel-subtitle">where I open up about who I am &amp; the human side of code</span>
+              </div>
+            </div>
+            <div class="thoughts__feed">
+              {personal.map((article, idx) => <ThoughtThread article={article} index={idx} />)}
+            </div>
+          </div>
+
+          <!-- PANEL: Architecture / Case Studies -->
+          <div class="thoughts__panel" data-panel="architecture" id="panelArchitecture">
+            <div class="thoughts__panel-header">
+              <div class="thoughts__panel-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="16 18 22 12 16 6" />
+                  <polyline points="8 6 2 12 8 18" />
+                </svg>
+              </div>
+              <div class="thoughts__panel-info">
+                <span class="thoughts__panel-title">&gt; case studies // λ 410nm ultraviolet</span>
+                <span class="thoughts__panel-subtitle">deep dives into full-stack systems &amp; architecture</span>
+              </div>
+            </div>
+            <div class="thoughts__feed">
+              {architecture.map((article, idx) => <ThoughtThread article={article} index={idx} />)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="thoughts__counter anim" data-anim="counter-reveal">
+      <div class="about__counter-line"></div>
+      <span class="about__counter-num">01</span>
+      <span class="about__counter-label">thoughts</span>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PAGE PAGER (dev_blog_pasado .next-page)
+       ============================================================ -->
+  <nav class="next-page" aria-label="Blog pages">
+    <a href="/" class="next-page__link" data-nav>
+      <span class="next-page__arrow" aria-hidden="true">&larr;</span>
+      <span class="next-page__label">back to hub</span>
+    </a>
+    <a href="/projects" class="next-page__link" data-nav>
+      <span class="next-page__label">next: projects</span>
+      <span class="next-page__arrow" aria-hidden="true">&rarr;</span>
+    </a>
+  </nav>
+</BlogLayout>
