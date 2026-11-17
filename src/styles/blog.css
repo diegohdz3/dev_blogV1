@@ -396,6 +396,16 @@ textarea:focus-visible {
   z-index: 2;
 }
 
+.antigravity-hero-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  display: block;
+}
+
 .hero__bg {
   position: absolute;
   inset: 0;

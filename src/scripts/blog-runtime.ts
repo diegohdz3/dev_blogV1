@@ -2,6 +2,7 @@ import { initEffects } from './effects';
 import { initHeroScene, type PrismCategory } from './hero-scene';
 import { initParticleBackdrop } from './particle-backdrop';
 import { syncBlogFromCms } from './cms-live';
+import { initAntigravityParticles } from './antigravity-particles';
 
 let pageController: AbortController | null = null;
 let routerInstalled = false;
@@ -389,6 +390,7 @@ function bootPageInteractions(): void {
     );
   });
   void syncBlogFromCms();
+  initAntigravityParticles(signal);
 }
 
 function bootBlog(): void {
