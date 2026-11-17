@@ -1,6 +1,7 @@
 import { initEffects } from './effects';
 import { initHeroScene, type PrismCategory } from './hero-scene';
 import { initParticleBackdrop } from './particle-backdrop';
+import { syncBlogFromCms } from './cms-live';
 
 let pageController: AbortController | null = null;
 let routerInstalled = false;
@@ -387,6 +388,7 @@ function bootPageInteractions(): void {
       { signal }
     );
   });
+  void syncBlogFromCms();
 }
 
 function bootBlog(): void {

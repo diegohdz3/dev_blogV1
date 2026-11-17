@@ -1,0 +1,26 @@
+---
+import BlogLayout from '../../layouts/BlogLayout.astro';
+import ParticleBackdrop from '../../components/ParticleBackdrop.astro';
+---
+<BlogLayout
+  title="Artículo en vivo — Diego Cortés Hernandez · Dev Blog"
+  description="Live CMS article viewer rendered dynamically from cms-core-api."
+  activePage="article"
+  indicator="live / cms"
+  backHref="/thoughts"
+  backLabel="thoughts"
+>
+  <ParticleBackdrop />
+
+  <div id="liveArticleRoot" style="min-height:70vh;">
+    <section class="pj-hero subpage-hero">
+      <div class="pj-hero__content">
+        <span class="pj-hero__tag">&lt; cms / live_reader /&gt;</span>
+        <h1 class="pj-hero__title">Cargando artículo desde tu CMS...</h1>
+        <p class="pj-hero__subtitle">
+          Si estás viendo esto desde Vercel, abre el enlace desde tu CMS o con <code>?cms=http://127.0.0.1:4000</code>.
+        </p>
+      </div>
+    </section>
+  </div>
+</BlogLayout>
