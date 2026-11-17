@@ -55,9 +55,6 @@ const { article, nextArticle } = Astro.props;
         <span class="pj-hero__date anim" data-anim="blur-in" data-delay="2">
           {article.dateDisplay} &middot; {article.readingTime} min read
         </span>
-        <span class="pj-hero__cms-pill anim" data-anim="blur-in" data-delay="2" title={`UUIDv7: ${article.document_id}`}>
-          ● {article.frozenTemplateName}
-        </span>
       </div>
 
       <h1 class="pj-hero__title">

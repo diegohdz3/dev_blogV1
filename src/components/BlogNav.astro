@@ -13,28 +13,35 @@ const {
   backLabel = 'hub',
 } = Astro.props;
 
+const isHome = activePage === 'home';
 const isInternal = backHref.startsWith('/');
 const landingUrl = import.meta.env.PUBLIC_LANDING_URL || 'https://devblog33.vercel.app';
-const cmsAdminUrl = import.meta.env.PUBLIC_CMS_ADMIN_URL || 'http://127.0.0.1:4000/admin';
 
 // Each section of the blog lives on its own page (multi-page blog, not a one-page landing).
-const links = [
-  { href: '/thoughts', label: 'thoughts', active: activePage === 'thoughts' || activePage === 'article' },
-  { href: '/projects', label: 'projects', active: activePage === 'projects' },
-  { href: '/about', label: 'about', active: activePage === 'about' },
-  { href: '/certifications', label: 'certs', active: activePage === 'certifications' },
-  { href: '/contact', label: 'contact', active: activePage === 'contact' },
-];
+const links = isHome
+  ? [
+      { href: '/thoughts', label: 'thoughts', active: false },
+      { href: '/projects', label: 'projects', active: false },
+      { href: '/about', label: 'about', active: false },
+      { href: '/contact', label: 'contact', active: false },
+    ]
+  : [
+      { href: '/thoughts', label: 'thoughts', active: activePage === 'thoughts' || activePage === 'article' },
+      { href: '/projects', label: 'projects', active: activePage === 'projects' },
+      { href: '/about', label: 'about', active: activePage === 'about' },
+      { href: '/certifications', label: 'certs', active: activePage === 'certifications' },
+      { href: '/contact', label: 'contact', active: activePage === 'contact' },
+    ];
 ---
-<nav class="sub-nav" id="subNav" aria-label="Main navigation">
+<nav class:list={['sub-nav', { 'sub-nav--home': isHome }]} id="subNav" aria-label="Main navigation">
   <a
-    href={backHref}
+    href={isHome ? landingUrl : backHref}
     class="sub-nav__back"
-    data-nav={isInternal ? '' : undefined}
-    target={isInternal ? undefined : '_blank'}
-    rel={isInternal ? undefined : 'noopener noreferrer'}
+    data-nav={!isHome && isInternal ? '' : undefined}
+    target={isHome || !isInternal ? '_blank' : undefined}
+    rel={isHome || !isInternal ? 'noopener noreferrer' : undefined}
   >
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#ededed" stroke-width="1.5"
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"
       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M19 12H5M5 12L12 5M5 12L12 19" />
     </svg>
@@ -52,14 +59,7 @@ const links = [
         {link.label}
       </a>
     ))}
-    <a href={cmsAdminUrl} target="_blank" rel="noopener noreferrer" class="sub-nav__link sub-nav__link--cms" title="Open CMS Editorial Console">
-      <span class="sub-nav__cms-dot"></span>
-      cms
-    </a>
-    <a href={landingUrl} target="_blank" rel="noopener noreferrer" class="sub-nav__link sub-nav__link--cv" title="Open Portfolio Landing Page">
-      landing cv &nearr;
-    </a>
   </div>
 
-  <div class="sub-nav__indicator" id="subNavIndicator">{indicator}</div>
+  {!isHome && <div class="sub-nav__indicator" id="subNavIndicator">{indicator}</div>}
 </nav>

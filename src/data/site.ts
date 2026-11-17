@@ -27,8 +27,8 @@ export const projects = [
     description:
       "VITTHER is a mobile app for collectible figure enthusiasts. Currently in active development — I share architecture decisions, catalog modeling, and devlogs here on the blog.",
     date: 'Sep 15, 2026',
-    href: 'http://127.0.0.1:4000/admin',
-    cta: 'view draft in cms',
+    href: '/thoughts',
+    cta: 'read devlogs',
     accent: '#08f7fe',
     stack: ['Mobile UI', 'TypeScript', 'Offline Sync', 'Catalog DB'],
     blueprint: 'mobile',

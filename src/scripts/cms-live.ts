@@ -257,7 +257,6 @@ function buildThreadCard(article: LiveArticle, idx: number): string {
           <span class="thread__date">${esc(article.dateDisplay)}</span>
           <span class="thread__sep">&middot;</span>
           <span class="thread__reading">${article.readingTime} min read</span>
-          <span class="thread__cms-badge">● CMS LIVE</span>
         </div>
         <h3 class="thread__title">
           <a href="${href}" class="thread__title-link" data-nav>${esc(article.title)}</a>
@@ -274,10 +273,6 @@ function buildThreadCard(article: LiveArticle, idx: number): string {
 export async function syncBlogFromCms(): Promise<void> {
   const cmsBase = resolveCmsBaseUrl();
   if (!cmsBase) return;
-
-  // Actualizar el botón "cms" en BlogNav para apuntar al CMS activo
-  const cmsNav = document.querySelector<HTMLAnchorElement>('.sub-nav__link--cms');
-  if (cmsNav) cmsNav.href = `${cmsBase}/admin`;
 
   try {
     const res = await fetch(`${cmsBase}/api/v1/documents?content_type=DEV_BLOG&status=PUBLICADO&limit=100`, {
@@ -360,7 +355,6 @@ export async function syncBlogFromCms(): Promise<void> {
               <span class="pj-hero__tag">${esc(found.heroTag)}</span>
               <span class="pj-hero__category pj-hero__category--${found.category}">${esc(found.categoryLabel)}</span>
               <span class="pj-hero__date">${esc(found.dateDisplay)} &middot; ${found.readingTime} min read</span>
-              <span class="pj-hero__cms-pill">● ${esc(found.frozenTemplateName)}</span>
             </div>
             <h1 class="pj-hero__title">
               <span class="heading-line is-visible"><span class="heading-line__inner">${esc(found.heroTitle)}</span></span>
@@ -398,3 +392,4 @@ export async function syncBlogFromCms(): Promise<void> {
     // Silencioso: conserva la versión estática precompilada
   }
 }
+

@@ -797,6 +797,117 @@ textarea:focus-visible {
   z-index: 5;
 }
 
+/* =====================================================================
+   MINIMAL HOME HUB (.hub-minimal)
+   ===================================================================== */
+.hub-minimal {
+  position: absolute;
+  left: 13.5%;
+  top: 34%;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: min(520px, 86vw);
+}
+
+.hub-minimal__name {
+  font-family: 'Caveat', cursive;
+  font-weight: 600;
+  font-size: clamp(2.5rem, 4.6vw, 4.1rem);
+  line-height: 1.04;
+  color: #f4f4f6;
+  margin-bottom: 10px;
+  animation-delay: 0.25s;
+}
+
+.hub-minimal__subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(0.82rem, 1.05vw, 0.98rem);
+  letter-spacing: 0.02em;
+  color: #8f96a3;
+  margin-bottom: 28px;
+  animation-delay: 0.42s;
+}
+
+.hub-minimal__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 22px;
+  border-radius: 5px;
+  border: 1px solid rgba(8, 247, 254, 0.32);
+  background: rgba(8, 247, 254, 0.06);
+  color: #bfeff2;
+  text-decoration: none;
+  font-size: clamp(0.75rem, 0.92vw, 0.85rem);
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation-delay: 0.58s;
+  transition: border-color 0.28s ease, background 0.28s ease, color 0.28s ease, box-shadow 0.28s ease, transform 0.28s ease;
+}
+
+.hub-minimal__cta:hover {
+  border-color: rgba(8, 247, 254, 0.72);
+  background: rgba(8, 247, 254, 0.14);
+  color: #ffffff;
+  box-shadow: 0 0 22px rgba(8, 247, 254, 0.2);
+  transform: translateY(-1px);
+}
+
+.hub-minimal__cta-arrow {
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hub-minimal__cta:hover .hub-minimal__cta-arrow {
+  transform: translateX(4px);
+}
+
+.hub-minimal__footer {
+  position: absolute;
+  left: 4.8%;
+  bottom: 5%;
+  z-index: 5;
+  font-size: 0.74rem;
+  letter-spacing: 0.03em;
+  color: #7c828f;
+  animation-delay: 0.75s;
+}
+
+.sub-nav--home {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding: 22px 4.8%;
+}
+
+.sub-nav--home .sub-nav__back {
+  color: #9ba1ae;
+  font-size: 0.78rem;
+}
+
+.sub-nav--home .sub-nav__links {
+  gap: 2.2rem;
+}
+
+.sub-nav--home .sub-nav__link {
+  color: #9ba1ae;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 760px) {
+  .hub-minimal {
+    left: 7%;
+    top: 24%;
+  }
+
+  .hub-minimal__footer {
+    left: 7%;
+    bottom: 24px;
+  }
+}
+
 @keyframes draw {
   to {
     stroke-dashoffset: 0;
