@@ -222,11 +222,13 @@ function renderArticleBlocksHtml(blocks: CmsCanvasBlock[], cmsBase: string, acce
     htmlParts.push(`
       <section class="th2-reader__section" id="${esc(currentSectionId)}" data-reader-section="${esc(currentSectionId)}">
         <span class="th2__dot th2-reader__sec-dot" style="background:${accentColor}"></span>
-        <div class="th2-reader__sec-meta">
-          <span class="th2-reader__sec-num">${num}</span>
-          ${currentEyebrow ? `<span class="th2-reader__sec-eyebrow" style="color:${accentColor}">${esc(currentEyebrow)}</span>` : ''}
+        <div class="th2-reader__sec-left">
+          <div class="th2-reader__sec-meta">
+            <span class="th2-reader__sec-num">${num}</span>
+            ${currentEyebrow ? `<span class="th2-reader__sec-eyebrow" style="color:${accentColor}">${esc(currentEyebrow)}</span>` : ''}
+          </div>
+          ${currentHeading ? `<h2 class="th2-reader__sec-title">${esc(currentHeading)}</h2>` : ''}
         </div>
-        ${currentHeading ? `<h2 class="th2-reader__sec-title">${esc(currentHeading)}</h2>` : ''}
         <div class="th2-reader__prose">${innerHtml}</div>
       </section>`);
 
@@ -250,11 +252,13 @@ function renderArticleBlocksHtml(blocks: CmsCanvasBlock[], cmsBase: string, acce
       htmlParts.push(`
         <section class="th2-reader__section" id="${secId}" data-reader-section="${secId}">
           <span class="th2__dot th2-reader__sec-dot" style="background:${accentColor}"></span>
-          <div class="th2-reader__sec-meta">
-            <span class="th2-reader__sec-num">${num}</span>
-            <span class="th2-reader__sec-eyebrow" style="color:${accentColor}">${esc(p.eyebrow || '/ overview')}</span>
+          <div class="th2-reader__sec-left">
+            <div class="th2-reader__sec-meta">
+              <span class="th2-reader__sec-num">${num}</span>
+              <span class="th2-reader__sec-eyebrow" style="color:${accentColor}">${esc(p.eyebrow || '/ overview')}</span>
+            </div>
+            <h2 class="th2-reader__sec-title">${esc(p.heading || 'Overview')}</h2>
           </div>
-          <h2 class="th2-reader__sec-title">${esc(p.heading || 'Overview')}</h2>
           <div class="th2-reader__prose">${paras}</div>
         </section>`);
     } else if (block.block_type === 'HEADING' && Number(p.level) !== 3) {
@@ -380,9 +384,9 @@ function buildSpineHtml(allArticles: LiveArticle[], filter: 'all' | Category): s
       const rSearch = esc(`${article.title} ${article.lead} ${rMeta.short}`.toLowerCase());
       const rowChapters =
         article.toc.length > 0
-          ? `<div class="th2__ex-chapters">
+          ? `<div class="th2__row-chapters">
               ${article.toc
-                .slice(0, 4)
+                .slice(0, 3)
                 .map(
                   (sec, idx) =>
                     `<a href="${href}#${esc(sec.id)}" data-nav><span>${String(idx + 1).padStart(
@@ -403,17 +407,18 @@ function buildSpineHtml(allArticles: LiveArticle[], filter: 'all' | Category): s
         >
           <span class="th2__dot" style="background:${rMeta.color}"></span>
           <span class="th2__num">${num}</span>
-          <a class="th2__ttl" href="${href}" data-nav>${esc(article.title)}</a>
-          <div class="th2__row-meta">
+          <div class="th2__row-primary">
+            <a class="th2__ttl" href="${href}" data-nav>${esc(article.title)}</a>
             <span class="th2__row-role">${esc(article.roleSummary)}</span>
-            <span class="th2__row-cat" style="color:${rMeta.color}">${esc(rMeta.short)}</span>
-            <span class="th2__date">${esc(shortDate(article.dateDisplay))}</span>
           </div>
-          <div class="th2__ex">
-            <p class="th2__ex-text">
-              ${esc(article.lead)} &middot; <span style="color:${rMeta.color}">${article.readingTime} min</span>
-            </p>
+          <div class="th2__row-middle">
+            <p class="th2__row-lead">${esc(article.lead)}</p>
             ${rowChapters}
+          </div>
+          <div class="th2__row-right">
+            <span class="th2__row-cat" style="color:${rMeta.color}">${esc(rMeta.short)} &middot; ${article.readingTime} min</span>
+            <span class="th2__date">${esc(shortDate(article.dateDisplay))}</span>
+            <a href="${href}" class="th2__row-go" style="color:${rMeta.color}" data-nav>read &rarr;</a>
           </div>
         </article>`;
     })
@@ -425,9 +430,12 @@ function buildSpineHtml(allArticles: LiveArticle[], filter: 'all' | Category): s
       ${rowsHtml}
       <div class="th2__rows-end"></div>
     </div>
-    <p class="th2__quote">
-      &ldquo;The code compiles, but the real question is &mdash; did you learn something today?&rdquo;
-    </p>`;
+    <div class="th2__footer-bar">
+      <p class="th2__quote">
+        &ldquo;The code compiles, but the real question is &mdash; did you learn something today?&rdquo;
+      </p>
+      <span class="th2__footer-sig">diego cortés hernández // full-spectrum notes</span>
+    </div>`;
 }
 
 let activeVisitEventId = '';

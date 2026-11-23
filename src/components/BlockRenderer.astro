@@ -80,13 +80,15 @@ for (const block of contentBlocks) {
       return (
         <section class="th2-reader__section" id={group.sectionId} data-reader-section={group.sectionId}>
           <span class="th2__dot th2-reader__sec-dot" style={`background:${accentColor}`}></span>
-          <div class="th2-reader__sec-meta">
-            <span class="th2-reader__sec-num">{num}</span>
-            <span class="th2-reader__sec-eyebrow" style={`color:${accentColor}`}>
-              {payload.eyebrow || '/ overview'}
-            </span>
+          <div class="th2-reader__sec-left">
+            <div class="th2-reader__sec-meta">
+              <span class="th2-reader__sec-num">{num}</span>
+              <span class="th2-reader__sec-eyebrow" style={`color:${accentColor}`}>
+                {payload.eyebrow || '/ overview'}
+              </span>
+            </div>
+            <h2 class="th2-reader__sec-title">{payload.heading || 'Overview'}</h2>
           </div>
-          <h2 class="th2-reader__sec-title">{payload.heading || 'Overview'}</h2>
           <div class="th2-reader__prose">
             {paragraphs.map((p: string) => (
               <p>{p}</p>
@@ -111,24 +113,28 @@ for (const block of contentBlocks) {
       return (
         <section class="th2-reader__section" id={group.sectionId} data-reader-section={group.sectionId}>
           <span class="th2__dot th2-reader__sec-dot" style={`background:${accentColor}`}></span>
-          <div class="th2-reader__sec-meta">
-            <span class="th2-reader__sec-num">{num}</span>
-            <span class="th2-reader__sec-eyebrow" style={`color:${accentColor}`}>
-              {payload.eyebrow || '/ timeline'}
-            </span>
-          </div>
-          <h2 class="th2-reader__sec-title">{payload.heading || 'The development process.'}</h2>
-          {Array.isArray(payload.phases) && (
-            <div class="th2-reader__phases">
-              {payload.phases.map((phase: { phase: string; title: string; desc: string }) => (
-                <div class="th2-reader__phase-card">
-                  <span class="th2-reader__phase-tag" style={`color:${accentColor}`}>{phase.phase}</span>
-                  <h3 class="th2-reader__phase-title">{phase.title}</h3>
-                  <p class="th2-reader__phase-desc">{phase.desc}</p>
-                </div>
-              ))}
+          <div class="th2-reader__sec-left">
+            <div class="th2-reader__sec-meta">
+              <span class="th2-reader__sec-num">{num}</span>
+              <span class="th2-reader__sec-eyebrow" style={`color:${accentColor}`}>
+                {payload.eyebrow || '/ timeline'}
+              </span>
             </div>
-          )}
+            <h2 class="th2-reader__sec-title">{payload.heading || 'The development process.'}</h2>
+          </div>
+          <div class="th2-reader__prose">
+            {Array.isArray(payload.phases) && (
+              <div class="th2-reader__phases">
+                {payload.phases.map((phase: { phase: string; title: string; desc: string }) => (
+                  <div class="th2-reader__phase-card">
+                    <span class="th2-reader__phase-tag" style={`color:${accentColor}`}>{phase.phase}</span>
+                    <h3 class="th2-reader__phase-title">{phase.title}</h3>
+                    <p class="th2-reader__phase-desc">{phase.desc}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </section>
       );
     }
@@ -138,26 +144,30 @@ for (const block of contentBlocks) {
       return (
         <section class="th2-reader__section" id={group.sectionId} data-reader-section={group.sectionId}>
           <span class="th2__dot th2-reader__sec-dot" style={`background:${accentColor}`}></span>
-          <div class="th2-reader__sec-meta">
-            <span class="th2-reader__sec-num">{num}</span>
-            <span class="th2-reader__sec-eyebrow" style={`color:${accentColor}`}>
-              {payload.eyebrow || '/ challenges'}
-            </span>
-          </div>
-          <h2 class="th2-reader__sec-title">{payload.heading || 'What I learned.'}</h2>
-          {Array.isArray(payload.cards) && (
-            <div class="th2-reader__cards">
-              {payload.cards.map((card: { title: string; text: string }, cIdx: number) => (
-                <div class="th2-reader__card">
-                  <div class="th2-reader__card-num" style={`color:${accentColor}`}>
-                    {String(cIdx + 1).padStart(2, '0')}
-                  </div>
-                  <h3 class="th2-reader__card-title">{card.title}</h3>
-                  <p class="th2-reader__card-text">{card.text}</p>
-                </div>
-              ))}
+          <div class="th2-reader__sec-left">
+            <div class="th2-reader__sec-meta">
+              <span class="th2-reader__sec-num">{num}</span>
+              <span class="th2-reader__sec-eyebrow" style={`color:${accentColor}`}>
+                {payload.eyebrow || '/ challenges'}
+              </span>
             </div>
-          )}
+            <h2 class="th2-reader__sec-title">{payload.heading || 'What I learned.'}</h2>
+          </div>
+          <div class="th2-reader__prose">
+            {Array.isArray(payload.cards) && (
+              <div class="th2-reader__cards">
+                {payload.cards.map((card: { title: string; text: string }, cIdx: number) => (
+                  <div class="th2-reader__card">
+                    <div class="th2-reader__card-num" style={`color:${accentColor}`}>
+                      {String(cIdx + 1).padStart(2, '0')}
+                    </div>
+                    <h3 class="th2-reader__card-title">{card.title}</h3>
+                    <p class="th2-reader__card-text">{card.text}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </section>
       );
     }
@@ -165,15 +175,17 @@ for (const block of contentBlocks) {
     return (
       <section class="th2-reader__section" id={group.sectionId} data-reader-section={group.sectionId}>
         <span class="th2__dot th2-reader__sec-dot" style={`background:${accentColor}`}></span>
-        <div class="th2-reader__sec-meta">
-          <span class="th2-reader__sec-num">{num}</span>
-          {group.eyebrow && (
-            <span class="th2-reader__sec-eyebrow" style={`color:${accentColor}`}>
-              {group.eyebrow}
-            </span>
-          )}
+        <div class="th2-reader__sec-left">
+          <div class="th2-reader__sec-meta">
+            <span class="th2-reader__sec-num">{num}</span>
+            {group.eyebrow && (
+              <span class="th2-reader__sec-eyebrow" style={`color:${accentColor}`}>
+                {group.eyebrow}
+              </span>
+            )}
+          </div>
+          {group.heading && <h2 class="th2-reader__sec-title">{group.heading}</h2>}
         </div>
-        {group.heading && <h2 class="th2-reader__sec-title">{group.heading}</h2>}
 
         <div class="th2-reader__prose">
           {group.items.map((item) => {

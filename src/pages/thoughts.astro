@@ -22,12 +22,12 @@ const articles = [...rawArticles].sort((a, b) => {
 
 const CAT_META: Record<
   BlogArticle['category'],
-  { color: string; short: string; wavelength: string; exitY: number }
+  { color: string; short: string; wavelength: string; nm: string }
 > = {
-  personal: { color: '#ff6b81', short: 'personal', wavelength: 'λ 650nm · personal', exitY: 34 },
-  opinions: { color: '#f5c542', short: 'opinion', wavelength: 'λ 590nm · opinion', exitY: 56 },
-  tutorials: { color: '#3ddbd9', short: 'tutorial', wavelength: 'λ 490nm · tutorial', exitY: 78 },
-  architecture: { color: '#7c8cff', short: 'case study', wavelength: 'λ 410nm · case study', exitY: 100 },
+  personal: { color: '#ff6b81', short: 'personal', wavelength: 'λ 650nm · personal', nm: '650nm' },
+  opinions: { color: '#f5c542', short: 'opinion', wavelength: 'λ 590nm · opinion', nm: '590nm' },
+  tutorials: { color: '#3ddbd9', short: 'tutorial', wavelength: 'λ 490nm · tutorial', nm: '490nm' },
+  architecture: { color: '#7c8cff', short: 'case study', wavelength: 'λ 410nm · case study', nm: '410nm' },
 };
 
 function shortDate(dateStr: string): string {
@@ -94,15 +94,15 @@ const totalMinutes = articles.reduce((acc, a) => acc + (Number(a.readingTime) ||
     </div>
 
     <div class="th2__workbench">
-      <!-- ==================== LEFT COLUMN: ANIMATED OPTICAL PRISM + FILTERS ==================== -->
+      <!-- ==================== LEFT COLUMN: FULL-HEIGHT 1080P ANIMATED PRISM & SPECTRUM CONTROLS ==================== -->
       <aside class="th2__left">
         <div class="th2__diagram" id="th2Diagram" data-active-ray="all">
           <svg
             id="th2PrismSvg"
             aria-hidden="true"
             viewBox="0 0 340 120"
-            width="340"
-            height="120"
+            width="420"
+            height="148"
             class="th2__svg"
           >
             <defs>
@@ -116,23 +116,18 @@ const totalMinutes = articles.reduce((acc, a) => acc + (Number(a.readingTime) ||
               </linearGradient>
             </defs>
 
-            <!-- Base Incident Beam + Animated Photon Pulse -->
             <line class="th2__beam-in" x1="0" y1="70" x2="123" y2="70" stroke="rgba(255,255,255,0.45)" stroke-width="1.5" />
             <line class="th2__beam-pulse" x1="0" y1="70" x2="123" y2="70" stroke="#ffffff" stroke-width="2" />
 
-            <!-- Internal Caustic Refraction Fan inside Prism -->
             <polygon class="th2__caustic" points="123,70 175,60 175,80" fill="url(#th2CoreGrad)" opacity="0.32" />
             <line class="th2__beam-core" id="th2BeamCore" x1="123" y1="70" x2="174" y2="68" stroke="url(#th2CoreGrad)" stroke-width="1.6" />
 
-            <!-- Animated Breathing Prism Triangle -->
             <polygon class="th2__prism-glow" points="150,18 205,102 95,102" fill="url(#th2PrismFill)" stroke="#5e5a68" stroke-width="1.25" />
             <polygon class="th2__prism-trace" points="150,18 205,102 95,102" fill="none" stroke="#ffffff" stroke-width="1.35" />
 
-            <!-- Entry & Exit Refraction Nodes -->
             <circle class="th2__node-in" cx="123" cy="70" r="2.2" fill="#ffffff" />
             <circle class="th2__node-out" cx="174" cy="68" r="2" fill="#ffffff" opacity="0.75" />
 
-            <!-- 4 Dispersed Spectrum Rays (Base + Flowing Photon Streams) -->
             <g class="th2__ray-group" data-ray="personal">
               <line class="th2__ray" x1="174" y1="68" x2="340" y2="34" stroke="#ff6b81" stroke-width="1.5" />
               <line class="th2__ray-flow th2__ray-flow--1" x1="174" y1="68" x2="340" y2="34" stroke="#ff94a4" stroke-width="2.2" />
@@ -157,7 +152,9 @@ const totalMinutes = articles.reduce((acc, a) => acc + (Number(a.readingTime) ||
         </div>
 
         <h1 class="th2__title">thoughts</h1>
-        <p class="th2__sub">Code, discipline and human psychology.</p>
+        <p class="th2__sub">
+          Code, discipline and human psychology. Reflections on software architecture, backend systems, and the human side of engineering.
+        </p>
 
         <div class="th2__segs" role="tablist" aria-label="Thought categories">
           <button
@@ -236,22 +233,45 @@ const totalMinutes = articles.reduce((acc, a) => acc + (Number(a.readingTime) ||
           </button>
         </div>
 
-        <!-- Minimalist Bottom Line Filter (No ugly boxes) -->
         <div class="th2__search-line">
           <span class="th2__search-prefix">/</span>
           <input
             type="search"
             id="th2SearchInput"
             class="th2__search-input"
-            placeholder="filter threads..."
+            placeholder="filter threads, topics or chapters..."
             autocomplete="off"
             aria-label="Filter thoughts"
           />
           <span class="th2__search-meta" id="th2TotalCount">{String(counts.all).padStart(2, '0')} · {totalMinutes}m</span>
         </div>
+
+        <!-- Frameless Optical Spectrum Legend (Fills lower-left vertical space on 1080p) -->
+        <div class="th2__spectrum-legend">
+          <div class="th2__legend-row">
+            <span class="th2__legend-dot" style="background:#ff6b81"></span>
+            <span class="th2__legend-nm">650nm</span>
+            <span class="th2__legend-name">personal &amp; life in code</span>
+          </div>
+          <div class="th2__legend-row">
+            <span class="th2__legend-dot" style="background:#f5c542"></span>
+            <span class="th2__legend-nm">590nm</span>
+            <span class="th2__legend-name">psychology &amp; opinions</span>
+          </div>
+          <div class="th2__legend-row">
+            <span class="th2__legend-dot" style="background:#3ddbd9"></span>
+            <span class="th2__legend-nm">490nm</span>
+            <span class="th2__legend-name">backend &amp; sql tutorials</span>
+          </div>
+          <div class="th2__legend-row">
+            <span class="th2__legend-dot" style="background:#7c8cff"></span>
+            <span class="th2__legend-nm">410nm</span>
+            <span class="th2__legend-name">architecture case studies</span>
+          </div>
+        </div>
       </aside>
 
-      <!-- ==================== RIGHT WIDE AREA: EXPANDED OPTICAL TIMELINE SPINE ==================== -->
+      <!-- ==================== RIGHT WIDE AREA: FULL 1920x1080 EXPANDED OPTICAL SPINE ==================== -->
       <div class="th2__center">
         <div class="thoughts__panels th2__panels">
           {panels.map((p) => {
@@ -282,9 +302,9 @@ const totalMinutes = articles.reduce((acc, a) => acc + (Number(a.readingTime) ||
                           <span>&middot;</span>
                           <span>{featured.dateDisplay}</span>
                           <span>&middot;</span>
-                          <span>{featured.readingTime} min</span>
+                          <span>{featured.readingTime} min read</span>
                         </div>
-                        <span class="th2__featured-wavelength">{fMeta.wavelength}</span>
+                        <span class="th2__featured-wavelength">{featured.roleSummary} &middot; {fMeta.wavelength}</span>
                       </div>
 
                       <h2 class="th2__featured-title">
@@ -306,7 +326,7 @@ const totalMinutes = articles.reduce((acc, a) => acc + (Number(a.readingTime) ||
 
                         {featured.toc && featured.toc.length > 0 && (
                           <div class="th2__featured-chapters">
-                            <span class="th2__chapters-label">/ chapters</span>
+                            <span class="th2__chapters-label">/ chapters inside this thread</span>
                             <div class="th2__chapters-list">
                               {featured.toc.slice(0, 4).map((sec, sIdx) => (
                                 <a href={`/blog/${featured.slug}#${sec.id}`} class="th2__chapter-link" data-nav>
@@ -334,21 +354,19 @@ const totalMinutes = articles.reduce((acc, a) => acc + (Number(a.readingTime) ||
                         >
                           <span class="th2__dot" style={`background:${rMeta.color}`}></span>
                           <span class="th2__num">{num}</span>
-                          <a class="th2__ttl" href={`/blog/${article.slug}`} data-nav>
-                            {article.title}
-                          </a>
-                          <div class="th2__row-meta">
+
+                          <div class="th2__row-primary">
+                            <a class="th2__ttl" href={`/blog/${article.slug}`} data-nav>
+                              {article.title}
+                            </a>
                             <span class="th2__row-role">{article.roleSummary}</span>
-                            <span class="th2__row-cat" style={`color:${rMeta.color}`}>{rMeta.short}</span>
-                            <span class="th2__date">{shortDate(article.dateDisplay)}</span>
                           </div>
-                          <div class="th2__ex">
-                            <p class="th2__ex-text">
-                              {article.lead} &middot; <span style={`color:${rMeta.color}`}>{article.readingTime} min</span>
-                            </p>
+
+                          <div class="th2__row-middle">
+                            <p class="th2__row-lead">{article.lead}</p>
                             {article.toc && article.toc.length > 0 && (
-                              <div class="th2__ex-chapters">
-                                {article.toc.slice(0, 4).map((sec, sIdx) => (
+                              <div class="th2__row-chapters">
+                                {article.toc.slice(0, 3).map((sec, sIdx) => (
                                   <a href={`/blog/${article.slug}#${sec.id}`} data-nav>
                                     <span>{String(sIdx + 1).padStart(2, '0')}</span> {sec.label}
                                   </a>
@@ -356,15 +374,28 @@ const totalMinutes = articles.reduce((acc, a) => acc + (Number(a.readingTime) ||
                               </div>
                             )}
                           </div>
+
+                          <div class="th2__row-right">
+                            <span class="th2__row-cat" style={`color:${rMeta.color}`}>
+                              {rMeta.short} &middot; {article.readingTime} min
+                            </span>
+                            <span class="th2__date">{shortDate(article.dateDisplay)}</span>
+                            <a href={`/blog/${article.slug}`} class="th2__row-go" style={`color:${rMeta.color}`} data-nav>
+                              read &rarr;
+                            </a>
+                          </div>
                         </article>
                       );
                     })}
                     <div class="th2__rows-end"></div>
                   </div>
 
-                  <p class="th2__quote">
-                    &ldquo;The code compiles, but the real question is &mdash; did you learn something today?&rdquo;
-                  </p>
+                  <div class="th2__footer-bar">
+                    <p class="th2__quote">
+                      &ldquo;The code compiles, but the real question is &mdash; did you learn something today?&rdquo;
+                    </p>
+                    <span class="th2__footer-sig">diego cortés hernández // full-spectrum notes</span>
+                  </div>
                 </div>
               </div>
             );
