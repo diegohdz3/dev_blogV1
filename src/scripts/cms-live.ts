@@ -20,7 +20,22 @@ interface LiveArticle {
   repoUrl?: string;
   frozenTemplateName: string;
   blocks: CmsCanvasBlock[];
+  toc: Array<{ id: string; label: string }>;
 }
+
+const CAT_META: Record<Category, { color: string; short: string; wavelength: string }> = {
+  personal: { color: '#ff6b81', short: 'personal', wavelength: 'λ 650nm · personal' },
+  opinions: { color: '#f5c542', short: 'opinion', wavelength: 'λ 590nm · opinion' },
+  tutorials: { color: '#3ddbd9', short: 'tutorial', wavelength: 'λ 490nm · tutorial' },
+  architecture: { color: '#7c8cff', short: 'case study', wavelength: 'λ 410nm · case study' },
+};
+
+const SEED_ORDER: Record<string, number> = {
+  'psychology-and-software-development': 1,
+  'sql-queries-inside-an-api': 2,
+  'fullstack-with-a-broken-heart': 3,
+  'bakingdesk-integrated-project-case-study': 4,
+};
 
 function esc(value: unknown): string {
   return String(value ?? '')
@@ -51,6 +66,20 @@ function mapDoc(doc: CmsDocument, index: number): LiveArticle {
     personal: '/ personal',
   };
 
+  const toc: Array<{ id: string; label: string }> = [];
+  for (const b of blocks) {
+    if (b.block_type === 'HEADING' && Number(b.content_payload?.level) !== 3 && b.content_payload?.text) {
+      toc.push({ id: `section-${b.order_index}`, label: String(b.content_payload.text) });
+    } else if (
+      (b.block_type === 'OVERVIEW_SECTION' ||
+        b.block_type === 'TIMELINE_SECTION' ||
+        b.block_type === 'CHALLENGE_CARDS') &&
+      b.content_payload?.heading
+    ) {
+      toc.push({ id: `section-${b.order_index}`, label: String(b.content_payload.heading) });
+    }
+  }
+
   return {
     document_id: doc.document_id,
     slug: doc.slug,
@@ -77,11 +106,12 @@ function mapDoc(doc: CmsDocument, index: number): LiveArticle {
             year: 'numeric',
           })
         : '2026'),
-    readingTime: Number(meta.reading_time) || 5,
+    readingTime: Number(meta.reading_time) || 6,
     roleSummary: String(meta.role_summary || 'Full-Stack & Frontend Engineering'),
     repoUrl: meta.repo_url ? String(meta.repo_url) : undefined,
     frozenTemplateName: doc.frozen_template?.name || 'Plantilla Bitácora Técnica (CMS)',
     blocks,
+    toc,
   };
 }
 
@@ -102,22 +132,22 @@ export function resolveCmsBaseUrl(): string {
   }
   const envUrl = import.meta.env.PUBLIC_CMS_API_URL || '';
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  return (qsCms || stored || envUrl || (isLocal ? 'http://127.0.0.1:4000' : 'https://cms-core-api-production.up.railway.app')).replace(/\/+$/, '');
-}
-
-function splitHeading(text: string): { before: string; em: string } {
-  const words = text.trim().split(/\s+/);
-  if (words.length <= 1) return { before: '', em: text.trim() };
-  return { before: words.slice(0, -1).join(' '), em: words[words.length - 1] };
+  return (
+    qsCms ||
+    stored ||
+    envUrl ||
+    (isLocal ? 'http://127.0.0.1:4000' : 'https://cms-core-api-production.up.railway.app')
+  ).replace(/\/+$/, '');
 }
 
 function sanitizeInlineHtml(html: string): string {
   return html.replace(/<\/?(?!(?:strong|b|em|i|code|a|br)\b)[^>]*>/gi, '');
 }
 
-function renderArticleBlocksHtml(blocks: CmsCanvasBlock[], cmsBase: string): string {
+function renderArticleBlocksHtml(blocks: CmsCanvasBlock[], cmsBase: string, accentColor: string): string {
   const contentBlocks = blocks.filter((b) => b.block_type !== 'CASE_HERO');
   let sectionIdx = 0;
+  let currentSectionId = 'section-1';
   let currentItems: CmsCanvasBlock[] = [];
   let currentHeading: string | undefined;
   let currentEyebrow: string | undefined;
@@ -125,15 +155,14 @@ function renderArticleBlocksHtml(blocks: CmsCanvasBlock[], cmsBase: string): str
 
   const flushEditorial = () => {
     if (!currentHeading && currentItems.length === 0) return;
-    const headingParts = currentHeading ? splitHeading(currentHeading) : null;
-    const isAlt = sectionIdx % 2 === 1;
     sectionIdx++;
+    const num = String(sectionIdx).padStart(2, '0');
 
     const innerHtml = currentItems
       .map((item) => {
         const p = item.content_payload || {};
         if (item.block_type === 'HEADING') {
-          return `<h3 class="th-article__subheading">${esc(p.text || '')}</h3>`;
+          return `<h3 class="th2-reader__subheading">${esc(p.text || '')}</h3>`;
         }
         if (item.block_type === 'PARAGRAPH') {
           if (p.divider) return `<hr class="th-article__divider" />`;
@@ -152,9 +181,9 @@ function renderArticleBlocksHtml(blocks: CmsCanvasBlock[], cmsBase: string): str
           return bodyHtml + listHtml;
         }
         if (item.block_type === 'CODE') {
-          return `<div class="th-article__code">
+          return `<div class="th-article__code th2-reader__code">
             <div class="th-article__code-header">
-              <span class="th-article__code-lang">${esc(p.language || 'code')}</span>
+              <span class="th-article__code-lang" style="color:${accentColor}">${esc(p.language || 'code')}</span>
               <div class="th-article__code-actions">
                 ${p.filename ? `<span class="th-article__code-file">${esc(p.filename)}</span>` : ''}
                 <button type="button" class="th-article__code-copy" data-copy-code>[ copy ]</button>
@@ -181,8 +210,8 @@ function renderArticleBlocksHtml(blocks: CmsCanvasBlock[], cmsBase: string): str
             item.block_type === 'CALLOUT'
               ? esc(p.text || p.message || p.quote || '')
               : `&ldquo;${esc(p.text || p.quote || '')}&rdquo;`;
-          return `<div class="th-article__callout ${isWarn ? 'th-article__callout--warning' : ''}">
-            <div class="th-article__callout-line"></div>
+          return `<div class="th-article__callout th2-reader__callout ${isWarn ? 'th-article__callout--warning' : ''}">
+            <div class="th-article__callout-line" style="${isWarn ? '' : `background:${accentColor}`}"></div>
             <blockquote>${text}</blockquote>
           </div>`;
         }
@@ -191,16 +220,14 @@ function renderArticleBlocksHtml(blocks: CmsCanvasBlock[], cmsBase: string): str
       .join('');
 
     htmlParts.push(`
-      <section class="th-article__section ${isAlt ? 'th-article__section--alt' : ''}">
-        <div class="th-article__block">
-          ${currentEyebrow ? `<span class="section__eyebrow">${esc(currentEyebrow)}</span>` : ''}
-          ${
-            headingParts
-              ? `<h2 class="th-article__heading">${headingParts.before ? `${esc(headingParts.before)} ` : ''}<em>${esc(headingParts.em)}</em></h2>`
-              : ''
-          }
-          <div class="th-article__body">${innerHtml}</div>
+      <section class="th2-reader__section" id="${esc(currentSectionId)}" data-reader-section="${esc(currentSectionId)}">
+        <span class="th2__dot th2-reader__sec-dot" style="background:${accentColor}"></span>
+        <div class="th2-reader__sec-meta">
+          <span class="th2-reader__sec-num">${num}</span>
+          ${currentEyebrow ? `<span class="th2-reader__sec-eyebrow" style="color:${accentColor}">${esc(currentEyebrow)}</span>` : ''}
         </div>
+        ${currentHeading ? `<h2 class="th2-reader__sec-title">${esc(currentHeading)}</h2>` : ''}
+        <div class="th2-reader__prose">${innerHtml}</div>
       </section>`);
 
     currentItems = [];
@@ -212,28 +239,32 @@ function renderArticleBlocksHtml(blocks: CmsCanvasBlock[], cmsBase: string): str
     const p = block.content_payload || {};
     if (block.block_type === 'OVERVIEW_SECTION') {
       flushEditorial();
+      sectionIdx++;
+      const num = String(sectionIdx).padStart(2, '0');
+      const secId = `section-${block.order_index}`;
       const paras = String(p.text || '')
         .split(/\n\n+/)
         .filter(Boolean)
         .map((t) => `<p>${esc(t)}</p>`)
         .join('');
-      const heading = splitHeading(String(p.heading || 'Overview'));
-      htmlParts.push(`<section class="pj-section">
-        <div class="pj-section__grid">
-          <div class="pj-section__left">
-            <span class="section__eyebrow">${esc(p.eyebrow || '/ overview')}</span>
-            <h2 class="pj-section__title">${heading.before ? `${esc(heading.before)} ` : ''}<em>${esc(heading.em)}</em></h2>
+      htmlParts.push(`
+        <section class="th2-reader__section" id="${secId}" data-reader-section="${secId}">
+          <span class="th2__dot th2-reader__sec-dot" style="background:${accentColor}"></span>
+          <div class="th2-reader__sec-meta">
+            <span class="th2-reader__sec-num">${num}</span>
+            <span class="th2-reader__sec-eyebrow" style="color:${accentColor}">${esc(p.eyebrow || '/ overview')}</span>
           </div>
-          <div class="pj-section__right">${paras}</div>
-        </div>
-      </section>`);
+          <h2 class="th2-reader__sec-title">${esc(p.heading || 'Overview')}</h2>
+          <div class="th2-reader__prose">${paras}</div>
+        </section>`);
     } else if (block.block_type === 'HEADING' && Number(p.level) !== 3) {
       flushEditorial();
-      sectionIdx++;
-      currentEyebrow = String(p.eyebrow || `/ section 0${sectionIdx}`);
+      currentSectionId = `section-${block.order_index}`;
+      currentEyebrow = String(p.eyebrow || `/ section 0${sectionIdx + 1}`);
       currentHeading = String(p.text || '');
     } else {
       if (!currentEyebrow && currentItems.length === 0) {
+        currentSectionId = `section-${block.order_index}`;
         currentEyebrow = String(p.eyebrow || '/ notes');
       }
       currentItems.push(block);
@@ -241,25 +272,31 @@ function renderArticleBlocksHtml(blocks: CmsCanvasBlock[], cmsBase: string): str
   }
   flushEditorial();
 
-  return `<div class="cms-rendered-article">${htmlParts.join('')}</div>`;
+  return `<div class="th2-reader__sections" style="--cat-color: ${accentColor}">${htmlParts.join('')}</div>`;
 }
-
-const CAT_META: Record<Category, { color: string; short: string }> = {
-  personal: { color: '#ff6b81', short: 'personal' },
-  opinions: { color: '#f5c542', short: 'opinion' },
-  tutorials: { color: '#3ddbd9', short: 'tutorial' },
-  architecture: { color: '#7c8cff', short: 'case study' },
-};
-
-const SEED_ORDER: Record<string, number> = {
-  'psychology-and-software-development': 1,
-  'sql-queries-inside-an-api': 2,
-  'fullstack-with-a-broken-heart': 3,
-  'bakingdesk-integrated-project-case-study': 4,
-};
 
 function shortDate(dateStr: string): string {
   return String(dateStr || '').replace(/,\s*\d{4}$/, '');
+}
+
+function extractFirstSnippet(article: LiveArticle): { heading: string; body: string; code: string } {
+  const blocks = article.blocks || [];
+  const firstHeading = blocks.find((b) => b.block_type === 'HEADING' || b.block_type === 'OVERVIEW_SECTION');
+  const firstPara = blocks.find((b) => b.block_type === 'PARAGRAPH' && b.content_payload?.text);
+  const firstCode = blocks.find((b) => b.block_type === 'CODE' && b.content_payload?.code);
+  const heading =
+    firstHeading?.content_payload?.text ||
+    firstHeading?.content_payload?.heading ||
+    'Thread Overview';
+  const rawBody =
+    firstPara?.content_payload?.text ||
+    firstHeading?.content_payload?.text ||
+    article.lead;
+  const body = String(rawBody).split(/\n\n+/)[0].slice(0, 220);
+  const code = firstCode?.content_payload?.code
+    ? String(firstCode.content_payload.code).split('\n').slice(0, 6).join('\n')
+    : '';
+  return { heading: String(heading), body, code };
 }
 
 function buildSpineHtml(allArticles: LiveArticle[], filter: 'all' | Category): string {
@@ -296,47 +333,65 @@ function buildSpineHtml(allArticles: LiveArticle[], filter: 'all' | Category): s
 
   const fMeta = CAT_META[featured.category];
   const fHref = `/blog/live?slug=${encodeURIComponent(featured.slug)}`;
+  const fSearch = esc(`${featured.title} ${featured.lead} ${fMeta.short}`.toLowerCase());
 
   const featuredHtml = `
     <article
       class="th2__featured"
       data-category="${featured.category}"
       data-prism-hover="${featured.category}"
+      data-inspect-slug="${esc(featured.slug)}"
+      data-search-text="${fSearch}"
       style="--cat-color: ${fMeta.color}"
     >
       <span class="th2__dot th2__dot--featured" style="background:${fMeta.color}"></span>
       <div class="th2__meta" style="color:${fMeta.color}">
-        ${esc(fMeta.short)} &middot; ${esc(featured.dateDisplay)} &middot; ${featured.readingTime} min
+        <span>01</span>
+        <span>&middot;</span>
+        <span>${esc(fMeta.short)}</span>
+        <span>&middot;</span>
+        <span>${esc(featured.dateDisplay)}</span>
+        <span>&middot;</span>
+        <span>${featured.readingTime} min</span>
       </div>
       <h2 class="th2__featured-title">
         <a href="${fHref}" data-nav>${esc(featured.title)}</a>
       </h2>
       <p class="th2__featured-lead">${esc(featured.lead)}</p>
-      <a
-        href="${fHref}"
-        class="th2__featured-cta"
-        style="border-bottom-color:${fMeta.color}"
-        data-nav
-      >
-        read thread &rarr;
-      </a>
+      <div class="th2__featured-actions">
+        <a
+          href="${fHref}"
+          class="th2__featured-cta"
+          style="border-bottom-color:${fMeta.color}"
+          data-nav
+        >
+          read thread &rarr;
+        </a>
+        <span class="th2__featured-role">${esc(featured.roleSummary)}</span>
+      </div>
     </article>`;
 
   const rowsHtml = rows
     .map(({ article, num, dimmed }) => {
       const rMeta = CAT_META[article.category];
       const href = `/blog/live?slug=${encodeURIComponent(article.slug)}`;
+      const rSearch = esc(`${article.title} ${article.lead} ${rMeta.short}`.toLowerCase());
       return `
         <article
           class="th2__row${dimmed ? ' th2__row--dimmed' : ''}"
           data-category="${article.category}"
           data-prism-hover="${article.category}"
+          data-inspect-slug="${esc(article.slug)}"
+          data-search-text="${rSearch}"
           style="--cat-color: ${rMeta.color}"
         >
           <span class="th2__dot" style="background:${rMeta.color}"></span>
           <span class="th2__num">${num}</span>
           <a class="th2__ttl" href="${href}" data-nav>${esc(article.title)}</a>
-          <span class="th2__date">${esc(shortDate(article.dateDisplay))}</span>
+          <div class="th2__row-meta">
+            <span class="th2__row-cat" style="color:${rMeta.color}">${esc(rMeta.short)}</span>
+            <span class="th2__date">${esc(shortDate(article.dateDisplay))}</span>
+          </div>
           <p class="th2__ex">
             ${esc(article.lead)} &middot; <span style="color:${rMeta.color}">${article.readingTime} min</span>
           </p>
@@ -484,7 +539,7 @@ export async function syncBlogFromCms(): Promise<void> {
       hubLabel.textContent = `thoughts (${String(articles.length).padStart(2, '0')})`;
     }
 
-    // 2. En /thoughts: actualizar hilos en vivo y contadores (Thoughts v2)
+    // 2. En /thoughts: actualizar hilos en vivo, contadores e Inspector Data (Thoughts v2 Wide Workbench)
     const thoughtsSection = document.getElementById('thoughts');
     if (thoughtsSection && articles.length > 0) {
       const counts: Record<'all' | Category, LiveArticle[]> = {
@@ -505,6 +560,14 @@ export async function syncBlogFromCms(): Promise<void> {
       setCount('tabPersonal', counts.personal.length);
       setCount('tabArchitecture', counts.architecture.length);
 
+      const totalCountEl = document.getElementById('th2TotalCount');
+      if (totalCountEl) totalCountEl.textContent = `${String(articles.length).padStart(2, '0')} threads`;
+      const totalMinsEl = document.getElementById('th2TotalMinutes');
+      if (totalMinsEl) {
+        const mins = articles.reduce((acc, a) => acc + (Number(a.readingTime) || 6), 0);
+        totalMinsEl.textContent = `${mins} min total read`;
+      }
+
       const panelMap: Array<[string, 'all' | Category]> = [
         ['panelAll', 'all'],
         ['panelTutorials', 'tutorials'],
@@ -518,9 +581,36 @@ export async function syncBlogFromCms(): Promise<void> {
           feed.innerHTML = buildSpineHtml(articles, filterKey);
         }
       }
+
+      const inspectorScript = document.getElementById('th2InspectorData');
+      if (inspectorScript) {
+        const liveInspectorItems = articles.map((a, idx) => {
+          const meta = CAT_META[a.category];
+          const snippet = extractFirstSnippet(a);
+          return {
+            slug: a.slug,
+            href: `/blog/live?slug=${encodeURIComponent(a.slug)}`,
+            num: String(idx + 1).padStart(2, '0'),
+            title: a.title,
+            lead: a.lead,
+            category: a.category,
+            categoryShort: meta.short,
+            color: meta.color,
+            wavelength: meta.wavelength,
+            dateDisplay: a.dateDisplay,
+            readingTime: a.readingTime,
+            roleSummary: a.roleSummary,
+            toc: (a.toc || []).slice(0, 6),
+            snippetHeading: snippet.heading,
+            snippetBody: snippet.body,
+            snippetCode: snippet.code,
+          };
+        });
+        inspectorScript.textContent = JSON.stringify(liveInspectorItems);
+      }
     }
 
-    // 3. En /blog/live?slug=...: renderizar el artículo completo desde el CMS
+    // 3. En /blog/live?slug=...: renderizar el artículo completo con la nueva arquitectura Thoughts v2 Wide Reader
     const liveRoot = document.getElementById('liveArticleRoot');
     if (liveRoot) {
       const slug = new URLSearchParams(window.location.search).get('slug') || '';
@@ -530,53 +620,158 @@ export async function syncBlogFromCms(): Promise<void> {
         return;
       }
 
+      const meta = CAT_META[found.category] || CAT_META.tutorials;
+      const otherArticles = articles.filter((a) => a.slug !== found.slug);
+
       document.title = `${found.title} — Diego Cortés Hernandez`;
       const indicatorEl = document.getElementById('subNavIndicator');
-      if (indicatorEl) indicatorEl.textContent = `${found.counterNum} / ${found.counterLabel}`;
+      if (indicatorEl) indicatorEl.textContent = `${found.counterNum} / ${meta.short}`;
+
+      const tocHtml =
+        found.toc.length > 0
+          ? `<nav class="th2-reader__toc" aria-label="Table of contents">
+              <div class="th2-reader__toc-title">&gt; sections // outline</div>
+              <ol class="th2-reader__toc-list" id="th2ReaderTocList">
+                ${found.toc
+                  .map(
+                    (sec, idx) => `
+                  <li>
+                    <a href="#${esc(sec.id)}" class="th2-reader__toc-link${idx === 0 ? ' is-active' : ''}" data-toc-target="${esc(sec.id)}">
+                      <span class="th2-reader__toc-dot"></span>
+                      <span class="th2-reader__toc-num">${String(idx + 1).padStart(2, '0')}</span>
+                      <span class="th2-reader__toc-label">${esc(sec.label)}</span>
+                    </a>
+                  </li>`
+                  )
+                  .join('')}
+              </ol>
+            </nav>`
+          : '';
+
+      const othersHtml =
+        otherArticles.length > 0
+          ? `<div class="th2-reader__card">
+              <div class="th2__inspector-label">&gt; other_wavelengths // switch thread</div>
+              <div class="th2-reader__switcher">
+                ${otherArticles
+                  .map((other) => {
+                    const oMeta = CAT_META[other.category] || CAT_META.tutorials;
+                    const oHref = `/blog/live?slug=${encodeURIComponent(other.slug)}`;
+                    return `<a href="${oHref}" class="th2-reader__switch-item" data-nav>
+                      <span class="th2-reader__switch-dot" style="background:${oMeta.color}"></span>
+                      <div class="th2-reader__switch-body">
+                        <span class="th2-reader__switch-cat" style="color:${oMeta.color}">${esc(oMeta.short)} &middot; ${other.readingTime} min</span>
+                        <span class="th2-reader__switch-title">${esc(other.title)}</span>
+                      </div>
+                    </a>`;
+                  })
+                  .join('')}
+              </div>
+            </div>`
+          : '';
 
       liveRoot.innerHTML = `
-        <section class="pj-hero subpage-hero" id="articleHero" data-category="${found.category}">
-          <div class="pj-hero__bg"><div class="pj-hero__grid-pattern"></div><div class="pj-hero__overlay"></div></div>
-          <div class="pj-hero__content">
-            <div class="pj-hero__meta">
-              <span class="pj-hero__tag">${esc(found.heroTag)}</span>
-              <span class="pj-hero__category pj-hero__category--${found.category}">${esc(found.categoryLabel)}</span>
-              <span class="pj-hero__date">${esc(found.dateDisplay)} &middot; ${found.readingTime} min read</span>
-            </div>
-            <h1 class="pj-hero__title">
-              <span class="heading-line is-visible"><span class="heading-line__inner">${esc(found.heroTitle)}</span></span>
-              ${
-                found.heroSubtitle
-                  ? `<span class="heading-line is-visible"><span class="heading-line__inner"><em>${esc(found.heroSubtitle)}</em></span></span>`
-                  : ''
-              }
-            </h1>
-            <p class="pj-hero__subtitle">${esc(found.lead)}</p>
-            <div class="pj-hero__actions">
-              <a href="#articleBody" class="pj-hero__visit-btn">
-                <span class="pj-hero__visit-label">[ read full thread ]</span>
-                <span class="pj-hero__visit-arrow">&darr;</span>
-              </a>
-              ${
-                found.repoUrl
-                  ? `<a href="${esc(found.repoUrl)}" target="_blank" rel="noopener noreferrer" class="pj-hero__scroll-hint"><span>view source repository</span><span aria-hidden="true">&nearr;</span></a>`
-                  : ''
-              }
-            </div>
+        <section class="th2 th2-reader subpage-hero" id="articleHero" data-category="${found.category}" style="--cat-color: ${meta.color}">
+          <div class="thoughts__bg" aria-hidden="true">
+            <div class="thoughts__bg-overlay th2__bg-overlay"></div>
           </div>
-        </section>
-        <div id="articleBody" class="article-body-wrapper">
-          ${renderArticleBlocksHtml(found.blocks, cmsBase)}
-        </div>
-        <div class="next-page">
-          <a href="/thoughts" class="next-page__link" data-nav>
-            <span class="next-page__arrow">&larr;</span>
-            <span class="next-page__label">back to thoughts</span>
-          </a>
-        </div>`;
+
+          <div class="th2-reader__workbench">
+            <aside class="th2-reader__left">
+              <a href="/thoughts" class="th2-reader__back" data-nav>
+                <span aria-hidden="true">&larr;</span>
+                <span>all thoughts</span>
+              </a>
+
+              <div class="th2__diagram" data-active-ray="${found.category}">
+                <svg aria-hidden="true" viewBox="0 0 340 120" width="280" height="98" class="th2__svg">
+                  <line class="th2__beam-in" x1="0" y1="70" x2="128" y2="70" stroke="#fff" stroke-width="1.5" />
+                  <line class="th2__beam-core" x1="128" y1="70" x2="172" y2="70" stroke="rgba(255,255,255,0.28)" stroke-width="1.2" stroke-dasharray="2 3" />
+                  <polygon class="th2__prism-poly" points="150,18 205,102 95,102" fill="none" stroke="#4a4752" stroke-width="1.2" />
+                  <line class="th2__ray" data-ray="personal" x1="172" y1="70" x2="340" y2="34" stroke="#ff6b81" stroke-width="1.5" />
+                  <line class="th2__ray" data-ray="opinions" x1="172" y1="70" x2="340" y2="56" stroke="#f5c542" stroke-width="1.5" />
+                  <line class="th2__ray" data-ray="tutorials" x1="172" y1="70" x2="340" y2="78" stroke="#3ddbd9" stroke-width="1.5" />
+                  <line class="th2__ray" data-ray="architecture" x1="172" y1="70" x2="340" y2="100" stroke="#7c8cff" stroke-width="1.5" />
+                </svg>
+                <div class="th2__wavelength">
+                  <span class="th2__wavelength-dot" style="background:${meta.color};box-shadow:0 0 10px ${meta.color}"></span>
+                  <span style="color:${meta.color}">${esc(meta.wavelength)}</span>
+                </div>
+              </div>
+
+              <div class="th2-reader__progress-card">
+                <div class="th2-reader__progress-head">
+                  <span>reading progress</span>
+                  <span id="th2ReadPercent" style="color:${meta.color}">0%</span>
+                </div>
+                <div class="th2-reader__progress-track">
+                  <div class="th2-reader__progress-fill" id="th2ReadFill" style="background:${meta.color}"></div>
+                </div>
+              </div>
+
+              ${tocHtml}
+            </aside>
+
+            <div class="th2-reader__center" id="articleBody">
+              <div class="th2__spine th2-reader__spine">
+                <header class="th2-reader__header">
+                  <span class="th2__dot th2__dot--featured" style="background:${meta.color}"></span>
+                  <div class="th2__meta" style="color:${meta.color}">
+                    <span>${esc(found.counterNum)}</span>
+                    <span>&middot;</span>
+                    <span>${esc(meta.short)}</span>
+                    <span>&middot;</span>
+                    <span>${esc(found.dateDisplay)}</span>
+                    <span>&middot;</span>
+                    <span>${found.readingTime} min read</span>
+                  </div>
+                  <h1 class="th2-reader__title">
+                    ${esc(found.heroTitle)}
+                    ${found.heroSubtitle ? `<span class="th2-reader__subtitle-em"> ${esc(found.heroSubtitle)}</span>` : ''}
+                  </h1>
+                  <p class="th2-reader__lead">${esc(found.lead)}</p>
+                  <div class="th2-reader__header-actions">
+                    <a href="#${esc(found.toc[0]?.id || 'articleBody')}" class="th2__featured-cta" style="border-bottom-color:${meta.color}">
+                      start reading &darr;
+                    </a>
+                    ${
+                      found.repoUrl
+                        ? `<a href="${esc(found.repoUrl)}" target="_blank" rel="noopener noreferrer" class="th2-reader__repo-link"><span>view source repository</span><span aria-hidden="true">&nearr;</span></a>`
+                        : ''
+                    }
+                  </div>
+                </header>
+
+                ${renderArticleBlocksHtml(found.blocks, cmsBase, meta.color)}
+
+                <footer class="th2-reader__footer">
+                  <p class="th2__quote">
+                    &ldquo;The code compiles, but the real question is &mdash; did you learn something today?&rdquo;
+                  </p>
+                </footer>
+              </div>
+            </div>
+
+            <aside class="th2-reader__right">
+              <div class="th2-reader__card">
+                <div class="th2__inspector-label">&gt; thread_telemetry // specs</div>
+                <dl class="th2-reader__specs">
+                  <div><dt>spectrum</dt><dd style="color:${meta.color}">${esc(meta.wavelength)}</dd></div>
+                  <div><dt>published</dt><dd>${esc(found.dateDisplay)}</dd></div>
+                  <div><dt>reading time</dt><dd>${found.readingTime} min</dd></div>
+                  <div><dt>domain</dt><dd>${esc(found.roleSummary)}</dd></div>
+                </dl>
+                <div class="th2-reader__quick-actions">
+                  <button type="button" class="th2__inspector-copy" data-copy-href="/blog/live?slug=${encodeURIComponent(found.slug)}">[ copy thread link ]</button>
+                  <button type="button" class="th2__inspector-copy" data-scroll-top>[ &uarr; top ]</button>
+                </div>
+              </div>
+              ${othersHtml}
+            </aside>
+          </div>
+        </section>`;
     }
   } catch {
     // Silencioso: conserva la versión estática precompilada
   }
 }
-

@@ -4,7 +4,6 @@ import { getPublishedBlogArticles, type BlogArticle } from '../lib/cms';
 
 const rawArticles = await getPublishedBlogArticles();
 
-// Order so the flagship articles match the Thoughts v2 editorial sequence while any newly created CMS articles lead first
 const SEED_ORDER: Record<string, number> = {
   'psychology-and-software-development': 1,
   'sql-queries-inside-an-api': 2,
@@ -23,22 +22,46 @@ const articles = [...rawArticles].sort((a, b) => {
 
 const CAT_META: Record<
   BlogArticle['category'],
-  { color: string; short: string; wavelength: string }
+  { color: string; short: string; wavelength: string; nm: string }
 > = {
-  personal: { color: '#ff6b81', short: 'personal', wavelength: 'λ 650nm · personal' },
-  opinions: { color: '#f5c542', short: 'opinion', wavelength: 'λ 590nm · opinion' },
-  tutorials: { color: '#3ddbd9', short: 'tutorial', wavelength: 'λ 490nm · tutorial' },
-  architecture: { color: '#7c8cff', short: 'case study', wavelength: 'λ 410nm · case study' },
+  personal: { color: '#ff6b81', short: 'personal', wavelength: 'λ 650nm · personal', nm: '650nm' },
+  opinions: { color: '#f5c542', short: 'opinion', wavelength: 'λ 590nm · opinion', nm: '590nm' },
+  tutorials: { color: '#3ddbd9', short: 'tutorial', wavelength: 'λ 490nm · tutorial', nm: '490nm' },
+  architecture: { color: '#7c8cff', short: 'case study', wavelength: 'λ 410nm · case study', nm: '410nm' },
 };
 
 function shortDate(dateStr: string): string {
   return String(dateStr || '').replace(/,\s*\d{4}$/, '');
 }
 
+function extractFirstSnippet(article: BlogArticle): { heading: string; body: string; code?: string } {
+  const blocks = article.blocks || [];
+  const firstHeading = blocks.find((b) => b.block_type === 'HEADING' || b.block_type === 'OVERVIEW_SECTION');
+  const firstPara = blocks.find((b) => b.block_type === 'PARAGRAPH' && b.content_payload?.text);
+  const firstCode = blocks.find((b) => b.block_type === 'CODE' && b.content_payload?.code);
+  const heading =
+    firstHeading?.content_payload?.text ||
+    firstHeading?.content_payload?.heading ||
+    'Thread Overview';
+  const rawBody =
+    firstPara?.content_payload?.text ||
+    firstHeading?.content_payload?.text ||
+    article.lead;
+  const body = String(rawBody).split(/\n\n+/)[0].slice(0, 220);
+  const code = firstCode?.content_payload?.code
+    ? String(firstCode.content_payload.code).split('\n').slice(0, 6).join('\n')
+    : undefined;
+  return { heading: String(heading), body, code };
+}
+
 function buildPanelView(filter: 'all' | BlogArticle['category']) {
   if (filter === 'all') {
     const featured = articles[0] || null;
-    const rows = articles.slice(1).map((a, idx) => ({ article: a, num: String(idx + 2).padStart(2, '0'), dimmed: false }));
+    const rows = articles.slice(1).map((a, idx) => ({
+      article: a,
+      num: String(idx + 2).padStart(2, '0'),
+      dimmed: false,
+    }));
     return { featured, rows };
   }
   const matching = articles.filter((a) => a.category === filter);
@@ -74,6 +97,34 @@ const counts = {
   tutorials: articles.filter((a) => a.category === 'tutorials').length,
   architecture: articles.filter((a) => a.category === 'architecture').length,
 };
+
+const totalMinutes = articles.reduce((acc, a) => acc + (Number(a.readingTime) || 6), 0);
+
+// Inspector dataset serialized for instant hover/click preview on the right rail
+const inspectorItems = articles.map((a, idx) => {
+  const meta = CAT_META[a.category];
+  const snippet = extractFirstSnippet(a);
+  return {
+    slug: a.slug,
+    href: `/blog/${a.slug}`,
+    num: String(idx + 1).padStart(2, '0'),
+    title: a.title,
+    lead: a.lead,
+    category: a.category,
+    categoryShort: meta.short,
+    color: meta.color,
+    wavelength: meta.wavelength,
+    dateDisplay: a.dateDisplay,
+    readingTime: a.readingTime,
+    roleSummary: a.roleSummary,
+    toc: (a.toc || []).slice(0, 6),
+    snippetHeading: snippet.heading,
+    snippetBody: snippet.body,
+    snippetCode: snippet.code || '',
+  };
+});
+
+const initialInspect = inspectorItems[0] || null;
 ---
 <BlogLayout
   title="Thoughts — Diego Cortés Hernandez · Dev Blog"
@@ -88,8 +139,8 @@ const counts = {
       <div class="thoughts__bg-overlay th2__bg-overlay"></div>
     </div>
 
-    <div class="th2__grid">
-      <!-- ==================== LEFT COLUMN: SCHEMATIC PRISM + TITLE + SEGMENTS ==================== -->
+    <div class="th2__workbench">
+      <!-- ==================== ZONE 1 (LEFT EDGE): SCHEMATIC PRISM + FILTERS + LIVE SEARCH ==================== -->
       <aside class="th2__left">
         <div class="th2__diagram" id="th2Diagram" data-active-ray="all">
           <svg
@@ -100,13 +151,9 @@ const counts = {
             height="120"
             class="th2__svg"
           >
-            <!-- Incident white beam -->
             <line class="th2__beam-in" x1="0" y1="70" x2="128" y2="70" stroke="#fff" stroke-width="1.5" />
-            <!-- Internal refraction bridge -->
             <line class="th2__beam-core" x1="128" y1="70" x2="172" y2="70" stroke="rgba(255,255,255,0.28)" stroke-width="1.2" stroke-dasharray="2 3" />
-            <!-- Prism wireframe -->
             <polygon class="th2__prism-poly" points="150,18 205,102 95,102" fill="none" stroke="#4a4752" stroke-width="1.2" />
-            <!-- Dispersed wavelength rays -->
             <line class="th2__ray" data-ray="personal" x1="172" y1="70" x2="340" y2="34" stroke="#ff6b81" stroke-width="1.5" />
             <line class="th2__ray" data-ray="opinions" x1="172" y1="70" x2="340" y2="56" stroke="#f5c542" stroke-width="1.5" />
             <line class="th2__ray" data-ray="tutorials" x1="172" y1="70" x2="340" y2="78" stroke="#3ddbd9" stroke-width="1.5" />
@@ -197,10 +244,39 @@ const counts = {
             <span class="thoughts__tab-count th2__seg-count">{String(counts.architecture).padStart(2, '0')}</span>
           </button>
         </div>
+
+        <!-- Live Instant Filter / Search Input -->
+        <div class="th2__search-box">
+          <span class="th2__search-prefix">/</span>
+          <input
+            type="search"
+            id="th2SearchInput"
+            class="th2__search-input"
+            placeholder="filter threads, topics or tags..."
+            autocomplete="off"
+            aria-label="Filter thoughts"
+          />
+          <kbd class="th2__search-kbd">/</kbd>
+        </div>
+
+        <!-- Spectrum Distribution Telemetry -->
+        <div class="th2__telemetry">
+          <div class="th2__telemetry-head">
+            <span id="th2TotalCount">{String(counts.all).padStart(2, '0')} threads</span>
+            <span>&middot;</span>
+            <span id="th2TotalMinutes">{totalMinutes} min total read</span>
+          </div>
+          <div class="th2__telemetry-bar" aria-hidden="true">
+            <span style={`flex:${Math.max(1, counts.personal)};background:#ff6b81`}></span>
+            <span style={`flex:${Math.max(1, counts.opinions)};background:#f5c542`}></span>
+            <span style={`flex:${Math.max(1, counts.tutorials)};background:#3ddbd9`}></span>
+            <span style={`flex:${Math.max(1, counts.architecture)};background:#7c8cff`}></span>
+          </div>
+        </div>
       </aside>
 
-      <!-- ==================== RIGHT COLUMN: OPTICAL TIMELINE SPINE ==================== -->
-      <div class="th2__right">
+      <!-- ==================== ZONE 2 (WIDE CENTER): OPTICAL TIMELINE SPINE ==================== -->
+      <div class="th2__center">
         <div class="thoughts__panels th2__panels">
           {panels.map((p) => {
             const { featured, rows } = buildPanelView(p.key);
@@ -217,24 +293,35 @@ const counts = {
                       class="th2__featured"
                       data-category={featured.category}
                       data-prism-hover={featured.category}
+                      data-inspect-slug={featured.slug}
+                      data-search-text={`${featured.title} ${featured.lead} ${fMeta.short}`.toLowerCase()}
                       style={`--cat-color: ${fMeta.color}`}
                     >
                       <span class="th2__dot th2__dot--featured" style={`background:${fMeta.color}`}></span>
                       <div class="th2__meta" style={`color:${fMeta.color}`}>
-                        {fMeta.short} &middot; {featured.dateDisplay} &middot; {featured.readingTime} min
+                        <span>01</span>
+                        <span>&middot;</span>
+                        <span>{fMeta.short}</span>
+                        <span>&middot;</span>
+                        <span>{featured.dateDisplay}</span>
+                        <span>&middot;</span>
+                        <span>{featured.readingTime} min</span>
                       </div>
                       <h2 class="th2__featured-title">
                         <a href={`/blog/${featured.slug}`} data-nav>{featured.title}</a>
                       </h2>
                       <p class="th2__featured-lead">{featured.lead}</p>
-                      <a
-                        href={`/blog/${featured.slug}`}
-                        class="th2__featured-cta"
-                        style={`border-bottom-color:${fMeta.color}`}
-                        data-nav
-                      >
-                        read thread &rarr;
-                      </a>
+                      <div class="th2__featured-actions">
+                        <a
+                          href={`/blog/${featured.slug}`}
+                          class="th2__featured-cta"
+                          style={`border-bottom-color:${fMeta.color}`}
+                          data-nav
+                        >
+                          read thread &rarr;
+                        </a>
+                        <span class="th2__featured-role">{featured.roleSummary}</span>
+                      </div>
                     </article>
                   )}
 
@@ -246,6 +333,8 @@ const counts = {
                           class:list={['th2__row', { 'th2__row--dimmed': dimmed }]}
                           data-category={article.category}
                           data-prism-hover={article.category}
+                          data-inspect-slug={article.slug}
+                          data-search-text={`${article.title} ${article.lead} ${rMeta.short}`.toLowerCase()}
                           style={`--cat-color: ${rMeta.color}`}
                         >
                           <span class="th2__dot" style={`background:${rMeta.color}`}></span>
@@ -253,7 +342,10 @@ const counts = {
                           <a class="th2__ttl" href={`/blog/${article.slug}`} data-nav>
                             {article.title}
                           </a>
-                          <span class="th2__date">{shortDate(article.dateDisplay)}</span>
+                          <div class="th2__row-meta">
+                            <span class="th2__row-cat" style={`color:${rMeta.color}`}>{rMeta.short}</span>
+                            <span class="th2__date">{shortDate(article.dateDisplay)}</span>
+                          </div>
                           <p class="th2__ex">
                             {article.lead} &middot; <span style={`color:${rMeta.color}`}>{article.readingTime} min</span>
                           </p>
@@ -272,6 +364,90 @@ const counts = {
           })}
         </div>
       </div>
+
+      <!-- ==================== ZONE 3 (RIGHT EDGE): LIVE THREAD INSPECTOR & QUICK READER ==================== -->
+      <aside class="th2__inspector" id="th2Inspector" aria-label="Live thread inspector">
+        {initialInspect && (
+          <div class="th2__inspector-card" id="th2InspectorCard" style={`--inspect-color: ${initialInspect.color}`}>
+            <div class="th2__inspector-top">
+              <div class="th2__inspector-badge">
+                <span class="th2__inspector-dot" id="th2InspectDot" style={`background:${initialInspect.color}`}></span>
+                <span id="th2InspectWavelength" style={`color:${initialInspect.color}`}>{initialInspect.wavelength}</span>
+              </div>
+              <span class="th2__inspector-num" id="th2InspectNum">#{initialInspect.num}</span>
+            </div>
+
+            <h3 class="th2__inspector-title">
+              <a id="th2InspectTitleLink" href={initialInspect.href} data-nav>{initialInspect.title}</a>
+            </h3>
+
+            <div class="th2__inspector-meta" id="th2InspectMeta">
+              <span>{initialInspect.dateDisplay}</span>
+              <span>&middot;</span>
+              <span>{initialInspect.readingTime} min read</span>
+              <span>&middot;</span>
+              <span>{initialInspect.roleSummary}</span>
+            </div>
+
+            <!-- Interactive Section Map (TOC) -->
+            <div class="th2__inspector-block">
+              <div class="th2__inspector-label">&gt; thread_architecture // sections</div>
+              <ol class="th2__inspector-toc" id="th2InspectToc">
+                {initialInspect.toc.map((sec, sIdx) => (
+                  <li>
+                    <a href={`${initialInspect.href}#${sec.id}`} data-nav>
+                      <span class="th2__inspector-toc-idx">{String(sIdx + 1).padStart(2, '0')}</span>
+                      <span class="th2__inspector-toc-text">{sec.label}</span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <!-- Live Excerpt / Code Peek -->
+            <div class="th2__inspector-block">
+              <div class="th2__inspector-label" id="th2InspectSnippetLabel">
+                &gt; preview // {initialInspect.snippetHeading.toLowerCase()}
+              </div>
+              <p class="th2__inspector-excerpt" id="th2InspectSnippetBody">
+                {initialInspect.snippetBody}
+              </p>
+              <pre
+                class="th2__inspector-code"
+                id="th2InspectSnippetCode"
+                style={initialInspect.snippetCode ? '' : 'display:none'}
+              ><code>{initialInspect.snippetCode}</code></pre>
+            </div>
+
+            <div class="th2__inspector-actions">
+              <a
+                id="th2InspectOpenBtn"
+                href={initialInspect.href}
+                class="th2__inspector-open"
+                style={`border-color:${initialInspect.color};color:#fff`}
+                data-nav
+              >
+                <span>open full thread</span>
+                <span aria-hidden="true">&rarr;</span>
+              </a>
+              <button
+                type="button"
+                id="th2InspectCopyBtn"
+                class="th2__inspector-copy"
+                data-copy-href={initialInspect.href}
+              >
+                [ copy link ]
+              </button>
+            </div>
+          </div>
+        )}
+      </aside>
     </div>
+
+    <script
+      type="application/json"
+      id="th2InspectorData"
+      set:html={JSON.stringify(inspectorItems)}
+    ></script>
   </section>
 </BlogLayout>

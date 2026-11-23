@@ -286,6 +286,97 @@ function bootPageInteractions(): void {
     }
   }
 
+  interface InspectorItem {
+    slug: string;
+    href: string;
+    num: string;
+    title: string;
+    lead: string;
+    category: string;
+    categoryShort: string;
+    color: string;
+    wavelength: string;
+    dateDisplay: string;
+    readingTime: number;
+    roleSummary: string;
+    toc: Array<{ id: string; label: string }>;
+    snippetHeading: string;
+    snippetBody: string;
+    snippetCode: string;
+  }
+
+  function updateInspectorBySlug(slug: string): void {
+    const dataEl = document.getElementById('th2InspectorData');
+    const cardEl = document.getElementById('th2InspectorCard');
+    if (!dataEl || !cardEl || !slug) return;
+    let list: InspectorItem[] = [];
+    try {
+      list = JSON.parse(dataEl.textContent || '[]') as InspectorItem[];
+    } catch {
+      return;
+    }
+    const item = list.find((i) => i.slug === slug);
+    if (!item) return;
+
+    cardEl.style.setProperty('--inspect-color', item.color);
+    const dotEl = document.getElementById('th2InspectDot');
+    if (dotEl) dotEl.style.background = item.color;
+    const wlEl = document.getElementById('th2InspectWavelength');
+    if (wlEl) {
+      wlEl.textContent = item.wavelength;
+      wlEl.style.color = item.color;
+    }
+    const numEl = document.getElementById('th2InspectNum');
+    if (numEl) numEl.textContent = `#${item.num}`;
+
+    const titleLink = document.getElementById('th2InspectTitleLink') as HTMLAnchorElement | null;
+    if (titleLink) {
+      titleLink.textContent = item.title;
+      titleLink.href = item.href;
+    }
+
+    const metaEl = document.getElementById('th2InspectMeta');
+    if (metaEl) {
+      metaEl.innerHTML = `<span>${item.dateDisplay}</span><span>&middot;</span><span>${item.readingTime} min read</span><span>&middot;</span><span>${item.roleSummary}</span>`;
+    }
+
+    const tocEl = document.getElementById('th2InspectToc');
+    if (tocEl) {
+      tocEl.innerHTML = (item.toc || [])
+        .map(
+          (sec, idx) =>
+            `<li><a href="${item.href}#${sec.id}" data-nav><span class="th2__inspector-toc-idx">${String(
+              idx + 1
+            ).padStart(2, '0')}</span><span class="th2__inspector-toc-text">${sec.label}</span></a></li>`
+        )
+        .join('');
+    }
+
+    const snipLabel = document.getElementById('th2InspectSnippetLabel');
+    if (snipLabel) snipLabel.textContent = `> preview // ${item.snippetHeading.toLowerCase()}`;
+    const snipBody = document.getElementById('th2InspectSnippetBody');
+    if (snipBody) snipBody.textContent = item.snippetBody;
+
+    const snipCode = document.getElementById('th2InspectSnippetCode');
+    if (snipCode) {
+      const codeInner = snipCode.querySelector('code');
+      if (item.snippetCode) {
+        if (codeInner) codeInner.textContent = item.snippetCode;
+        snipCode.style.display = '';
+      } else {
+        snipCode.style.display = 'none';
+      }
+    }
+
+    const openBtn = document.getElementById('th2InspectOpenBtn') as HTMLAnchorElement | null;
+    if (openBtn) {
+      openBtn.href = item.href;
+      openBtn.style.borderColor = item.color;
+    }
+    const copyBtn = document.getElementById('th2InspectCopyBtn');
+    if (copyBtn) copyBtn.setAttribute('data-copy-href', item.href);
+  }
+
   tabs.forEach((tab) => {
     tab.addEventListener(
       'click',
@@ -310,6 +401,8 @@ function bootPageInteractions(): void {
         const panel = document.querySelector<HTMLElement>(`.thoughts__panel[data-panel="${target}"]`);
         if (panel) {
           panel.classList.add('is-active');
+          const firstSlug = panel.querySelector<HTMLElement>('[data-inspect-slug]')?.dataset.inspectSlug;
+          if (firstSlug) updateInspectorBySlug(firstSlug);
           requestAnimationFrame(() => {
             panel.classList.add('panel-enter');
             panel.querySelectorAll<HTMLElement>('.anim').forEach((el) => el.classList.add('visible'));
@@ -346,6 +439,10 @@ function bootPageInteractions(): void {
         if (item?.dataset.prismHover) {
           setDiagramRay(item.dataset.prismHover);
         }
+        const inspectTarget = (e.target as HTMLElement | null)?.closest<HTMLElement>('[data-inspect-slug]');
+        if (inspectTarget?.dataset.inspectSlug) {
+          updateInspectorBySlug(inspectTarget.dataset.inspectSlug);
+        }
       },
       { signal, passive: true }
     );
@@ -357,6 +454,129 @@ function bootPageInteractions(): void {
       { signal, passive: true }
     );
   }
+
+  // Live Instant Filter / Search Input on /thoughts
+  const searchInput = document.getElementById('th2SearchInput') as HTMLInputElement | null;
+  if (searchInput) {
+    searchInput.addEventListener(
+      'input',
+      () => {
+        const q = searchInput.value.trim().toLowerCase();
+        const items = document.querySelectorAll<HTMLElement>('#thoughts [data-search-text]');
+        let firstMatchSlug = '';
+        items.forEach((el) => {
+          const hay = (el.dataset.searchText || '').toLowerCase();
+          const matched = !q || hay.includes(q);
+          el.style.display = matched ? '' : 'none';
+          if (matched && !firstMatchSlug && el.dataset.inspectSlug) {
+            firstMatchSlug = el.dataset.inspectSlug;
+          }
+        });
+        if (firstMatchSlug) updateInspectorBySlug(firstMatchSlug);
+      },
+      { signal }
+    );
+
+    window.addEventListener(
+      'keydown',
+      (e) => {
+        if (
+          e.key === '/' &&
+          document.activeElement !== searchInput &&
+          !(document.activeElement instanceof HTMLInputElement) &&
+          !(document.activeElement instanceof HTMLTextAreaElement)
+        ) {
+          e.preventDefault();
+          searchInput.focus();
+        }
+      },
+      { signal }
+    );
+  }
+
+  // Full Thought Reader: Reading Progress Meter + Scroll-Spy Section TOC
+  const readFill = document.getElementById('th2ReadFill');
+  const readPercent = document.getElementById('th2ReadPercent');
+  const updateReaderScroll = () => {
+    const bodyEl = document.getElementById('articleBody');
+    if (!bodyEl) return;
+    const rect = bodyEl.getBoundingClientRect();
+    const totalScrollable = Math.max(1, bodyEl.offsetHeight - window.innerHeight * 0.55);
+    const scrolled = Math.min(Math.max(0, -rect.top + window.innerHeight * 0.25), totalScrollable);
+    const pct = Math.round((scrolled / totalScrollable) * 100);
+    const fillEl = document.getElementById('th2ReadFill');
+    const pctEl = document.getElementById('th2ReadPercent');
+    if (fillEl) fillEl.style.width = `${pct}%`;
+    if (pctEl) pctEl.textContent = `${pct}%`;
+
+    const secEls = document.querySelectorAll<HTMLElement>('[data-reader-section]');
+    const tocLinks = document.querySelectorAll<HTMLElement>('[data-toc-target]');
+    if (secEls.length > 0 && tocLinks.length > 0) {
+      let currentId = secEls[0].dataset.readerSection || '';
+      secEls.forEach((sec) => {
+        if (sec.getBoundingClientRect().top <= window.innerHeight * 0.35) {
+          currentId = sec.dataset.readerSection || currentId;
+        }
+      });
+      tocLinks.forEach((link) => {
+        link.classList.toggle('is-active', link.dataset.tocTarget === currentId);
+      });
+    }
+  };
+  if (readFill || readPercent || document.getElementById('liveArticleRoot')) {
+    window.addEventListener('scroll', () => requestAnimationFrame(updateReaderScroll), {
+      passive: true,
+      signal,
+    });
+    updateReaderScroll();
+  }
+
+  // Delegated Copy Code, Copy Thread Link, and Scroll Top actions (works for both static & live CMS HTML)
+  document.addEventListener(
+    'click',
+    async (e) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+
+      const copyCodeBtn = target.closest<HTMLButtonElement>('[data-copy-code]');
+      if (copyCodeBtn) {
+        const codeEl = copyCodeBtn.closest('.th-article__code')?.querySelector('code');
+        if (!codeEl) return;
+        try {
+          await navigator.clipboard.writeText(codeEl.textContent || '');
+          const prev = copyCodeBtn.textContent;
+          copyCodeBtn.textContent = '[ copied ✓ ]';
+          copyCodeBtn.classList.add('is-copied');
+          setTimeout(() => {
+            copyCodeBtn.textContent = prev;
+            copyCodeBtn.classList.remove('is-copied');
+          }, 1800);
+        } catch {}
+        return;
+      }
+
+      const copyHrefBtn = target.closest<HTMLButtonElement>('[data-copy-href]');
+      if (copyHrefBtn) {
+        const rawHref = copyHrefBtn.getAttribute('data-copy-href') || window.location.pathname;
+        const fullUrl = new URL(rawHref, window.location.origin).href;
+        try {
+          await navigator.clipboard.writeText(fullUrl);
+          const prev = copyHrefBtn.textContent;
+          copyHrefBtn.textContent = '[ link copied ✓ ]';
+          setTimeout(() => {
+            copyHrefBtn.textContent = prev;
+          }, 1800);
+        } catch {}
+        return;
+      }
+
+      const topBtn = target.closest<HTMLButtonElement>('[data-scroll-top]');
+      if (topBtn) {
+        window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
+      }
+    },
+    { signal }
+  );
 
   // 4. Projects Card Mouse-Tracking Glow + Category Filter
   const cards = document.querySelectorAll<HTMLElement>('.card');
