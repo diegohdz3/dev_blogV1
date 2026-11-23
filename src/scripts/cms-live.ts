@@ -244,30 +244,115 @@ function renderArticleBlocksHtml(blocks: CmsCanvasBlock[], cmsBase: string): str
   return `<div class="cms-rendered-article">${htmlParts.join('')}</div>`;
 }
 
-function buildThreadCard(article: LiveArticle, idx: number): string {
-  const num = String(idx + 1).padStart(2, '0');
-  const href = `/blog/live?slug=${encodeURIComponent(article.slug)}`;
-  return `
-    <article class="thread is-visible" data-category="${article.category}" data-prism-hover="${article.category}">
-      <div class="thread__index">${num}</div>
-      <div class="thread__content">
-        <div class="thread__meta">
-          <span class="thread__category thread__category--${article.category}">${esc(article.categoryLabel)}</span>
-          <span class="thread__sep">&mdash;</span>
-          <span class="thread__date">${esc(article.dateDisplay)}</span>
-          <span class="thread__sep">&middot;</span>
-          <span class="thread__reading">${article.readingTime} min read</span>
-        </div>
-        <h3 class="thread__title">
-          <a href="${href}" class="thread__title-link" data-nav>${esc(article.title)}</a>
-        </h3>
-        <p class="thread__excerpt">${esc(article.lead)}</p>
-        <div class="thread__footer">
-          <a href="${href}" class="thread__link" data-nav>read thread <span>&rarr;</span></a>
-          <span class="thread__role">${esc(article.roleSummary)}</span>
-        </div>
+const CAT_META: Record<Category, { color: string; short: string }> = {
+  personal: { color: '#ff6b81', short: 'personal' },
+  opinions: { color: '#f5c542', short: 'opinion' },
+  tutorials: { color: '#3ddbd9', short: 'tutorial' },
+  architecture: { color: '#7c8cff', short: 'case study' },
+};
+
+const SEED_ORDER: Record<string, number> = {
+  'psychology-and-software-development': 1,
+  'sql-queries-inside-an-api': 2,
+  'fullstack-with-a-broken-heart': 3,
+  'bakingdesk-integrated-project-case-study': 4,
+};
+
+function shortDate(dateStr: string): string {
+  return String(dateStr || '').replace(/,\s*\d{4}$/, '');
+}
+
+function buildSpineHtml(allArticles: LiveArticle[], filter: 'all' | Category): string {
+  if (allArticles.length === 0) return '';
+
+  let featured: LiveArticle;
+  let rows: Array<{ article: LiveArticle; num: string; dimmed: boolean }> = [];
+
+  if (filter === 'all') {
+    featured = allArticles[0];
+    rows = allArticles.slice(1).map((a, idx) => ({
+      article: a,
+      num: String(idx + 2).padStart(2, '0'),
+      dimmed: false,
+    }));
+  } else {
+    const matching = allArticles.filter((a) => a.category === filter);
+    const others = allArticles.filter((a) => a.category !== filter);
+    featured = matching[0] || allArticles[0];
+    const restMatching = matching.slice(1).map((a, idx) => ({
+      article: a,
+      num: String(idx + 2).padStart(2, '0'),
+      dimmed: false,
+    }));
+    const restOthers = others
+      .filter((a) => a.slug !== featured.slug)
+      .map((a, idx) => ({
+        article: a,
+        num: String(restMatching.length + idx + 2).padStart(2, '0'),
+        dimmed: true,
+      }));
+    rows = [...restMatching, ...restOthers];
+  }
+
+  const fMeta = CAT_META[featured.category];
+  const fHref = `/blog/live?slug=${encodeURIComponent(featured.slug)}`;
+
+  const featuredHtml = `
+    <article
+      class="th2__featured"
+      data-category="${featured.category}"
+      data-prism-hover="${featured.category}"
+      style="--cat-color: ${fMeta.color}"
+    >
+      <span class="th2__dot th2__dot--featured" style="background:${fMeta.color}"></span>
+      <div class="th2__meta" style="color:${fMeta.color}">
+        ${esc(fMeta.short)} &middot; ${esc(featured.dateDisplay)} &middot; ${featured.readingTime} min
       </div>
+      <h2 class="th2__featured-title">
+        <a href="${fHref}" data-nav>${esc(featured.title)}</a>
+      </h2>
+      <p class="th2__featured-lead">${esc(featured.lead)}</p>
+      <a
+        href="${fHref}"
+        class="th2__featured-cta"
+        style="border-bottom-color:${fMeta.color}"
+        data-nav
+      >
+        read thread &rarr;
+      </a>
     </article>`;
+
+  const rowsHtml = rows
+    .map(({ article, num, dimmed }) => {
+      const rMeta = CAT_META[article.category];
+      const href = `/blog/live?slug=${encodeURIComponent(article.slug)}`;
+      return `
+        <article
+          class="th2__row${dimmed ? ' th2__row--dimmed' : ''}"
+          data-category="${article.category}"
+          data-prism-hover="${article.category}"
+          style="--cat-color: ${rMeta.color}"
+        >
+          <span class="th2__dot" style="background:${rMeta.color}"></span>
+          <span class="th2__num">${num}</span>
+          <a class="th2__ttl" href="${href}" data-nav>${esc(article.title)}</a>
+          <span class="th2__date">${esc(shortDate(article.dateDisplay))}</span>
+          <p class="th2__ex">
+            ${esc(article.lead)} &middot; <span style="color:${rMeta.color}">${article.readingTime} min</span>
+          </p>
+        </article>`;
+    })
+    .join('');
+
+  return `
+    ${featuredHtml}
+    <div class="th2__rows">
+      ${rowsHtml}
+      <div class="th2__rows-end"></div>
+    </div>
+    <p class="th2__quote">
+      &ldquo;The code compiles, but the real question is &mdash; did you learn something today?&rdquo;
+    </p>`;
 }
 
 let activeVisitEventId = '';
@@ -381,9 +466,16 @@ export async function syncBlogFromCms(): Promise<void> {
     });
     if (!res.ok) return;
     const data = (await res.json()) as { items?: CmsDocument[] };
-    const docs = (data.items || []).sort((a, b) =>
-      String(b.published_at || b.updated_at).localeCompare(String(a.published_at || a.updated_at))
-    );
+    const docs = (data.items || []).sort((a, b) => {
+      const oa = SEED_ORDER[a.slug] ?? 0;
+      const ob = SEED_ORDER[b.slug] ?? 0;
+      if (oa === 0 && ob === 0) {
+        return String(b.published_at || b.updated_at).localeCompare(String(a.published_at || a.updated_at));
+      }
+      if (oa === 0) return -1;
+      if (ob === 0) return 1;
+      return oa - ob;
+    });
     const articles = docs.map((d, i) => mapDoc(d, i));
 
     // 1. En el Hub (/): actualizar contador thoughts (XX)
@@ -392,7 +484,7 @@ export async function syncBlogFromCms(): Promise<void> {
       hubLabel.textContent = `thoughts (${String(articles.length).padStart(2, '0')})`;
     }
 
-    // 2. En /thoughts: actualizar hilos en vivo y contadores
+    // 2. En /thoughts: actualizar hilos en vivo y contadores (Thoughts v2)
     const thoughtsSection = document.getElementById('thoughts');
     if (thoughtsSection && articles.length > 0) {
       const counts: Record<'all' | Category, LiveArticle[]> = {
@@ -413,24 +505,18 @@ export async function syncBlogFromCms(): Promise<void> {
       setCount('tabPersonal', counts.personal.length);
       setCount('tabArchitecture', counts.architecture.length);
 
-      const panelMap: Array<[string, LiveArticle[]]> = [
-        ['panelAll', counts.all],
-        ['panelTutorials', counts.tutorials],
-        ['panelOpinions', counts.opinions],
-        ['panelPersonal', counts.personal],
-        ['panelArchitecture', counts.architecture],
+      const panelMap: Array<[string, 'all' | Category]> = [
+        ['panelAll', 'all'],
+        ['panelTutorials', 'tutorials'],
+        ['panelOpinions', 'opinions'],
+        ['panelPersonal', 'personal'],
+        ['panelArchitecture', 'architecture'],
       ];
-      for (const [panelId, list] of panelMap) {
+      for (const [panelId, filterKey] of panelMap) {
         const feed = document.querySelector(`#${panelId} .thoughts__feed`);
         if (feed) {
-          feed.innerHTML = list.map((a, idx) => buildThreadCard(a, idx)).join('');
+          feed.innerHTML = buildSpineHtml(articles, filterKey);
         }
-      }
-      const pinned = document.querySelector<HTMLAnchorElement>('.thoughts__pinned-link');
-      if (pinned && articles[0]) {
-        pinned.href = `/blog/live?slug=${encodeURIComponent(articles[0].slug)}`;
-        const span = pinned.querySelector('span');
-        if (span) span.textContent = `latest: ${articles[0].title}`;
       }
     }
 

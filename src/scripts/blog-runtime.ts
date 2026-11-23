@@ -2,7 +2,6 @@ import { initEffects } from './effects';
 import { initHeroScene, type PrismCategory } from './hero-scene';
 import { initParticleBackdrop } from './particle-backdrop';
 import { syncBlogFromCms } from './cms-live';
-import { initAntigravityParticles } from './antigravity-particles';
 
 let pageController: AbortController | null = null;
 let routerInstalled = false;
@@ -260,9 +259,32 @@ function bootPageInteractions(): void {
     document.querySelector('.subpage-hero')?.classList.add('in-view');
   });
 
-  // 3. Thoughts Category Tab System (switches panels smoothly without altering the Prism's original colors)
+  // 3. Thoughts v2 Category Segment System + Interactive Schematic Prism Ray Resonance
   const tabs = document.querySelectorAll<HTMLButtonElement>('.thoughts__tab[data-tab]');
   const panels = document.querySelectorAll<HTMLElement>('.thoughts__panel[data-panel]');
+  const diagram = document.getElementById('th2Diagram');
+  const wlText = document.getElementById('th2WavelengthText');
+  const wlDot = document.getElementById('th2WavelengthDot');
+
+  const RAY_META: Record<string, { color: string; text: string }> = {
+    all: { color: '#ffffff', text: 'λ 380–700nm · full spectrum' },
+    personal: { color: '#ff6b81', text: 'λ 650nm · personal' },
+    opinions: { color: '#f5c542', text: 'λ 590nm · opinion' },
+    tutorials: { color: '#3ddbd9', text: 'λ 490nm · tutorial' },
+    architecture: { color: '#7c8cff', text: 'λ 410nm · case study' },
+  };
+
+  let activeTabKey = 'all';
+
+  function setDiagramRay(rayKey: string): void {
+    const meta = RAY_META[rayKey] || RAY_META.all;
+    if (diagram) diagram.dataset.activeRay = rayKey;
+    if (wlText) wlText.textContent = meta.text;
+    if (wlDot) {
+      wlDot.style.background = meta.color;
+      wlDot.style.boxShadow = `0 0 10px ${meta.color}`;
+    }
+  }
 
   tabs.forEach((tab) => {
     tab.addEventListener(
@@ -270,6 +292,9 @@ function bootPageInteractions(): void {
       () => {
         const target = tab.dataset.tab as PrismCategory | undefined;
         if (!target) return;
+
+        activeTabKey = target;
+        setDiagramRay(target);
 
         tabs.forEach((t) => {
           t.classList.remove('is-active');
@@ -293,7 +318,45 @@ function bootPageInteractions(): void {
       },
       { signal }
     );
+
+    tab.addEventListener(
+      'mouseenter',
+      () => {
+        const target = tab.dataset.tab;
+        if (target) setDiagramRay(target);
+      },
+      { signal }
+    );
+
+    tab.addEventListener(
+      'mouseleave',
+      () => {
+        setDiagramRay(activeTabKey);
+      },
+      { signal }
+    );
   });
+
+  const thoughtsSection = document.getElementById('thoughts');
+  if (thoughtsSection) {
+    thoughtsSection.addEventListener(
+      'pointerover',
+      (e) => {
+        const item = (e.target as HTMLElement | null)?.closest<HTMLElement>('[data-prism-hover]');
+        if (item?.dataset.prismHover) {
+          setDiagramRay(item.dataset.prismHover);
+        }
+      },
+      { signal, passive: true }
+    );
+    thoughtsSection.addEventListener(
+      'pointerleave',
+      () => {
+        setDiagramRay(activeTabKey);
+      },
+      { signal, passive: true }
+    );
+  }
 
   // 4. Projects Card Mouse-Tracking Glow + Category Filter
   const cards = document.querySelectorAll<HTMLElement>('.card');
@@ -390,7 +453,6 @@ function bootPageInteractions(): void {
     );
   });
   void syncBlogFromCms();
-  initAntigravityParticles(signal);
 }
 
 function bootBlog(): void {
