@@ -266,12 +266,12 @@ function bootPageInteractions(): void {
   const wlText = document.getElementById('th2WavelengthText');
   const wlDot = document.getElementById('th2WavelengthDot');
 
-  const RAY_META: Record<string, { color: string; text: string }> = {
-    all: { color: '#ffffff', text: 'λ 380–700nm · full spectrum' },
-    personal: { color: '#ff6b81', text: 'λ 650nm · personal' },
-    opinions: { color: '#f5c542', text: 'λ 590nm · opinion' },
-    tutorials: { color: '#3ddbd9', text: 'λ 490nm · tutorial' },
-    architecture: { color: '#7c8cff', text: 'λ 410nm · case study' },
+  const RAY_META: Record<string, { color: string; text: string; coreY: string }> = {
+    all: { color: '#ffffff', text: 'λ 380–700nm · full spectrum', coreY: '68' },
+    personal: { color: '#ff6b81', text: 'λ 650nm · personal', coreY: '63' },
+    opinions: { color: '#f5c542', text: 'λ 590nm · opinion', coreY: '66' },
+    tutorials: { color: '#3ddbd9', text: 'λ 490nm · tutorial', coreY: '70' },
+    architecture: { color: '#7c8cff', text: 'λ 410nm · case study', coreY: '74' },
   };
 
   let activeTabKey = 'all';
@@ -284,97 +284,13 @@ function bootPageInteractions(): void {
       wlDot.style.background = meta.color;
       wlDot.style.boxShadow = `0 0 10px ${meta.color}`;
     }
-  }
-
-  interface InspectorItem {
-    slug: string;
-    href: string;
-    num: string;
-    title: string;
-    lead: string;
-    category: string;
-    categoryShort: string;
-    color: string;
-    wavelength: string;
-    dateDisplay: string;
-    readingTime: number;
-    roleSummary: string;
-    toc: Array<{ id: string; label: string }>;
-    snippetHeading: string;
-    snippetBody: string;
-    snippetCode: string;
-  }
-
-  function updateInspectorBySlug(slug: string): void {
-    const dataEl = document.getElementById('th2InspectorData');
-    const cardEl = document.getElementById('th2InspectorCard');
-    if (!dataEl || !cardEl || !slug) return;
-    let list: InspectorItem[] = [];
-    try {
-      list = JSON.parse(dataEl.textContent || '[]') as InspectorItem[];
-    } catch {
-      return;
+    const coreBeam = document.getElementById('th2BeamCore');
+    if (coreBeam) coreBeam.setAttribute('y2', meta.coreY);
+    const outNode = document.querySelector('#th2PrismSvg .th2__node-out');
+    if (outNode) {
+      outNode.setAttribute('cy', meta.coreY);
+      outNode.setAttribute('fill', meta.color);
     }
-    const item = list.find((i) => i.slug === slug);
-    if (!item) return;
-
-    cardEl.style.setProperty('--inspect-color', item.color);
-    const dotEl = document.getElementById('th2InspectDot');
-    if (dotEl) dotEl.style.background = item.color;
-    const wlEl = document.getElementById('th2InspectWavelength');
-    if (wlEl) {
-      wlEl.textContent = item.wavelength;
-      wlEl.style.color = item.color;
-    }
-    const numEl = document.getElementById('th2InspectNum');
-    if (numEl) numEl.textContent = `#${item.num}`;
-
-    const titleLink = document.getElementById('th2InspectTitleLink') as HTMLAnchorElement | null;
-    if (titleLink) {
-      titleLink.textContent = item.title;
-      titleLink.href = item.href;
-    }
-
-    const metaEl = document.getElementById('th2InspectMeta');
-    if (metaEl) {
-      metaEl.innerHTML = `<span>${item.dateDisplay}</span><span>&middot;</span><span>${item.readingTime} min read</span><span>&middot;</span><span>${item.roleSummary}</span>`;
-    }
-
-    const tocEl = document.getElementById('th2InspectToc');
-    if (tocEl) {
-      tocEl.innerHTML = (item.toc || [])
-        .map(
-          (sec, idx) =>
-            `<li><a href="${item.href}#${sec.id}" data-nav><span class="th2__inspector-toc-idx">${String(
-              idx + 1
-            ).padStart(2, '0')}</span><span class="th2__inspector-toc-text">${sec.label}</span></a></li>`
-        )
-        .join('');
-    }
-
-    const snipLabel = document.getElementById('th2InspectSnippetLabel');
-    if (snipLabel) snipLabel.textContent = `> preview // ${item.snippetHeading.toLowerCase()}`;
-    const snipBody = document.getElementById('th2InspectSnippetBody');
-    if (snipBody) snipBody.textContent = item.snippetBody;
-
-    const snipCode = document.getElementById('th2InspectSnippetCode');
-    if (snipCode) {
-      const codeInner = snipCode.querySelector('code');
-      if (item.snippetCode) {
-        if (codeInner) codeInner.textContent = item.snippetCode;
-        snipCode.style.display = '';
-      } else {
-        snipCode.style.display = 'none';
-      }
-    }
-
-    const openBtn = document.getElementById('th2InspectOpenBtn') as HTMLAnchorElement | null;
-    if (openBtn) {
-      openBtn.href = item.href;
-      openBtn.style.borderColor = item.color;
-    }
-    const copyBtn = document.getElementById('th2InspectCopyBtn');
-    if (copyBtn) copyBtn.setAttribute('data-copy-href', item.href);
   }
 
   tabs.forEach((tab) => {
@@ -401,8 +317,6 @@ function bootPageInteractions(): void {
         const panel = document.querySelector<HTMLElement>(`.thoughts__panel[data-panel="${target}"]`);
         if (panel) {
           panel.classList.add('is-active');
-          const firstSlug = panel.querySelector<HTMLElement>('[data-inspect-slug]')?.dataset.inspectSlug;
-          if (firstSlug) updateInspectorBySlug(firstSlug);
           requestAnimationFrame(() => {
             panel.classList.add('panel-enter');
             panel.querySelectorAll<HTMLElement>('.anim').forEach((el) => el.classList.add('visible'));
@@ -439,10 +353,6 @@ function bootPageInteractions(): void {
         if (item?.dataset.prismHover) {
           setDiagramRay(item.dataset.prismHover);
         }
-        const inspectTarget = (e.target as HTMLElement | null)?.closest<HTMLElement>('[data-inspect-slug]');
-        if (inspectTarget?.dataset.inspectSlug) {
-          updateInspectorBySlug(inspectTarget.dataset.inspectSlug);
-        }
       },
       { signal, passive: true }
     );
@@ -463,16 +373,11 @@ function bootPageInteractions(): void {
       () => {
         const q = searchInput.value.trim().toLowerCase();
         const items = document.querySelectorAll<HTMLElement>('#thoughts [data-search-text]');
-        let firstMatchSlug = '';
         items.forEach((el) => {
           const hay = (el.dataset.searchText || '').toLowerCase();
           const matched = !q || hay.includes(q);
           el.style.display = matched ? '' : 'none';
-          if (matched && !firstMatchSlug && el.dataset.inspectSlug) {
-            firstMatchSlug = el.dataset.inspectSlug;
-          }
         });
-        if (firstMatchSlug) updateInspectorBySlug(firstMatchSlug);
       },
       { signal }
     );

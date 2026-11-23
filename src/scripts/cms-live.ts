@@ -279,26 +279,6 @@ function shortDate(dateStr: string): string {
   return String(dateStr || '').replace(/,\s*\d{4}$/, '');
 }
 
-function extractFirstSnippet(article: LiveArticle): { heading: string; body: string; code: string } {
-  const blocks = article.blocks || [];
-  const firstHeading = blocks.find((b) => b.block_type === 'HEADING' || b.block_type === 'OVERVIEW_SECTION');
-  const firstPara = blocks.find((b) => b.block_type === 'PARAGRAPH' && b.content_payload?.text);
-  const firstCode = blocks.find((b) => b.block_type === 'CODE' && b.content_payload?.code);
-  const heading =
-    firstHeading?.content_payload?.text ||
-    firstHeading?.content_payload?.heading ||
-    'Thread Overview';
-  const rawBody =
-    firstPara?.content_payload?.text ||
-    firstHeading?.content_payload?.text ||
-    article.lead;
-  const body = String(rawBody).split(/\n\n+/)[0].slice(0, 220);
-  const code = firstCode?.content_payload?.code
-    ? String(firstCode.content_payload.code).split('\n').slice(0, 6).join('\n')
-    : '';
-  return { heading: String(heading), body, code };
-}
-
 function buildSpineHtml(allArticles: LiveArticle[], filter: 'all' | Category): string {
   if (allArticles.length === 0) return '';
 
@@ -334,40 +314,62 @@ function buildSpineHtml(allArticles: LiveArticle[], filter: 'all' | Category): s
   const fMeta = CAT_META[featured.category];
   const fHref = `/blog/live?slug=${encodeURIComponent(featured.slug)}`;
   const fSearch = esc(`${featured.title} ${featured.lead} ${fMeta.short}`.toLowerCase());
+  const fChaptersHtml =
+    featured.toc.length > 0
+      ? `<div class="th2__featured-chapters">
+          <span class="th2__chapters-label">/ chapters</span>
+          <div class="th2__chapters-list">
+            ${featured.toc
+              .slice(0, 4)
+              .map(
+                (sec, idx) => `
+              <a href="${fHref}#${esc(sec.id)}" class="th2__chapter-link" data-nav>
+                <span class="th2__chapter-num">${String(idx + 1).padStart(2, '0')}</span>
+                <span>${esc(sec.label)}</span>
+              </a>`
+              )
+              .join('')}
+          </div>
+        </div>`
+      : '';
 
   const featuredHtml = `
     <article
       class="th2__featured"
       data-category="${featured.category}"
       data-prism-hover="${featured.category}"
-      data-inspect-slug="${esc(featured.slug)}"
       data-search-text="${fSearch}"
       style="--cat-color: ${fMeta.color}"
     >
       <span class="th2__dot th2__dot--featured" style="background:${fMeta.color}"></span>
-      <div class="th2__meta" style="color:${fMeta.color}">
-        <span>01</span>
-        <span>&middot;</span>
-        <span>${esc(fMeta.short)}</span>
-        <span>&middot;</span>
-        <span>${esc(featured.dateDisplay)}</span>
-        <span>&middot;</span>
-        <span>${featured.readingTime} min</span>
+      <div class="th2__featured-head">
+        <div class="th2__meta" style="color:${fMeta.color}">
+          <span>01</span>
+          <span>&middot;</span>
+          <span>${esc(fMeta.short)}</span>
+          <span>&middot;</span>
+          <span>${esc(featured.dateDisplay)}</span>
+          <span>&middot;</span>
+          <span>${featured.readingTime} min</span>
+        </div>
+        <span class="th2__featured-wavelength">${esc(fMeta.wavelength)}</span>
       </div>
       <h2 class="th2__featured-title">
         <a href="${fHref}" data-nav>${esc(featured.title)}</a>
       </h2>
-      <p class="th2__featured-lead">${esc(featured.lead)}</p>
-      <div class="th2__featured-actions">
-        <a
-          href="${fHref}"
-          class="th2__featured-cta"
-          style="border-bottom-color:${fMeta.color}"
-          data-nav
-        >
-          read thread &rarr;
-        </a>
-        <span class="th2__featured-role">${esc(featured.roleSummary)}</span>
+      <div class="th2__featured-grid">
+        <div class="th2__featured-main">
+          <p class="th2__featured-lead">${esc(featured.lead)}</p>
+          <a
+            href="${fHref}"
+            class="th2__featured-cta"
+            style="border-bottom-color:${fMeta.color}"
+            data-nav
+          >
+            read thread &rarr;
+          </a>
+        </div>
+        ${fChaptersHtml}
       </div>
     </article>`;
 
@@ -376,12 +378,26 @@ function buildSpineHtml(allArticles: LiveArticle[], filter: 'all' | Category): s
       const rMeta = CAT_META[article.category];
       const href = `/blog/live?slug=${encodeURIComponent(article.slug)}`;
       const rSearch = esc(`${article.title} ${article.lead} ${rMeta.short}`.toLowerCase());
+      const rowChapters =
+        article.toc.length > 0
+          ? `<div class="th2__ex-chapters">
+              ${article.toc
+                .slice(0, 4)
+                .map(
+                  (sec, idx) =>
+                    `<a href="${href}#${esc(sec.id)}" data-nav><span>${String(idx + 1).padStart(
+                      2,
+                      '0'
+                    )}</span> ${esc(sec.label)}</a>`
+                )
+                .join('')}
+            </div>`
+          : '';
       return `
         <article
           class="th2__row${dimmed ? ' th2__row--dimmed' : ''}"
           data-category="${article.category}"
           data-prism-hover="${article.category}"
-          data-inspect-slug="${esc(article.slug)}"
           data-search-text="${rSearch}"
           style="--cat-color: ${rMeta.color}"
         >
@@ -389,12 +405,16 @@ function buildSpineHtml(allArticles: LiveArticle[], filter: 'all' | Category): s
           <span class="th2__num">${num}</span>
           <a class="th2__ttl" href="${href}" data-nav>${esc(article.title)}</a>
           <div class="th2__row-meta">
+            <span class="th2__row-role">${esc(article.roleSummary)}</span>
             <span class="th2__row-cat" style="color:${rMeta.color}">${esc(rMeta.short)}</span>
             <span class="th2__date">${esc(shortDate(article.dateDisplay))}</span>
           </div>
-          <p class="th2__ex">
-            ${esc(article.lead)} &middot; <span style="color:${rMeta.color}">${article.readingTime} min</span>
-          </p>
+          <div class="th2__ex">
+            <p class="th2__ex-text">
+              ${esc(article.lead)} &middot; <span style="color:${rMeta.color}">${article.readingTime} min</span>
+            </p>
+            ${rowChapters}
+          </div>
         </article>`;
     })
     .join('');
@@ -539,7 +559,7 @@ export async function syncBlogFromCms(): Promise<void> {
       hubLabel.textContent = `thoughts (${String(articles.length).padStart(2, '0')})`;
     }
 
-    // 2. En /thoughts: actualizar hilos en vivo, contadores e Inspector Data (Thoughts v2 Wide Workbench)
+    // 2. En /thoughts: actualizar hilos en vivo y contadores (Thoughts v2 Wide 2-Column)
     const thoughtsSection = document.getElementById('thoughts');
     if (thoughtsSection && articles.length > 0) {
       const counts: Record<'all' | Category, LiveArticle[]> = {
@@ -561,11 +581,9 @@ export async function syncBlogFromCms(): Promise<void> {
       setCount('tabArchitecture', counts.architecture.length);
 
       const totalCountEl = document.getElementById('th2TotalCount');
-      if (totalCountEl) totalCountEl.textContent = `${String(articles.length).padStart(2, '0')} threads`;
-      const totalMinsEl = document.getElementById('th2TotalMinutes');
-      if (totalMinsEl) {
+      if (totalCountEl) {
         const mins = articles.reduce((acc, a) => acc + (Number(a.readingTime) || 6), 0);
-        totalMinsEl.textContent = `${mins} min total read`;
+        totalCountEl.textContent = `${String(articles.length).padStart(2, '0')} · ${mins}m`;
       }
 
       const panelMap: Array<[string, 'all' | Category]> = [
@@ -581,36 +599,9 @@ export async function syncBlogFromCms(): Promise<void> {
           feed.innerHTML = buildSpineHtml(articles, filterKey);
         }
       }
-
-      const inspectorScript = document.getElementById('th2InspectorData');
-      if (inspectorScript) {
-        const liveInspectorItems = articles.map((a, idx) => {
-          const meta = CAT_META[a.category];
-          const snippet = extractFirstSnippet(a);
-          return {
-            slug: a.slug,
-            href: `/blog/live?slug=${encodeURIComponent(a.slug)}`,
-            num: String(idx + 1).padStart(2, '0'),
-            title: a.title,
-            lead: a.lead,
-            category: a.category,
-            categoryShort: meta.short,
-            color: meta.color,
-            wavelength: meta.wavelength,
-            dateDisplay: a.dateDisplay,
-            readingTime: a.readingTime,
-            roleSummary: a.roleSummary,
-            toc: (a.toc || []).slice(0, 6),
-            snippetHeading: snippet.heading,
-            snippetBody: snippet.body,
-            snippetCode: snippet.code,
-          };
-        });
-        inspectorScript.textContent = JSON.stringify(liveInspectorItems);
-      }
     }
 
-    // 3. En /blog/live?slug=...: renderizar el artículo completo con la nueva arquitectura Thoughts v2 Wide Reader
+    // 3. En /blog/live?slug=...: renderizar el artículo completo con la arquitectura 2-Column Wide Boxless Reader
     const liveRoot = document.getElementById('liveArticleRoot');
     if (liveRoot) {
       const slug = new URLSearchParams(window.location.search).get('slug') || '';
@@ -630,7 +621,7 @@ export async function syncBlogFromCms(): Promise<void> {
       const tocHtml =
         found.toc.length > 0
           ? `<nav class="th2-reader__toc" aria-label="Table of contents">
-              <div class="th2-reader__toc-title">&gt; sections // outline</div>
+              <div class="th2-reader__toc-title">/ chapters</div>
               <ol class="th2-reader__toc-list" id="th2ReaderTocList">
                 ${found.toc
                   .map(
@@ -650,8 +641,8 @@ export async function syncBlogFromCms(): Promise<void> {
 
       const othersHtml =
         otherArticles.length > 0
-          ? `<div class="th2-reader__card">
-              <div class="th2__inspector-label">&gt; other_wavelengths // switch thread</div>
+          ? `<div class="th2-reader__others">
+              <div class="th2-reader__toc-title">/ other thoughts</div>
               <div class="th2-reader__switcher">
                 ${otherArticles
                   .map((other) => {
@@ -659,10 +650,7 @@ export async function syncBlogFromCms(): Promise<void> {
                     const oHref = `/blog/live?slug=${encodeURIComponent(other.slug)}`;
                     return `<a href="${oHref}" class="th2-reader__switch-item" data-nav>
                       <span class="th2-reader__switch-dot" style="background:${oMeta.color}"></span>
-                      <div class="th2-reader__switch-body">
-                        <span class="th2-reader__switch-cat" style="color:${oMeta.color}">${esc(oMeta.short)} &middot; ${other.readingTime} min</span>
-                        <span class="th2-reader__switch-title">${esc(other.title)}</span>
-                      </div>
+                      <span class="th2-reader__switch-title">${esc(other.title)}</span>
                     </a>`;
                   })
                   .join('')}
@@ -684,14 +672,42 @@ export async function syncBlogFromCms(): Promise<void> {
               </a>
 
               <div class="th2__diagram" data-active-ray="${found.category}">
-                <svg aria-hidden="true" viewBox="0 0 340 120" width="280" height="98" class="th2__svg">
-                  <line class="th2__beam-in" x1="0" y1="70" x2="128" y2="70" stroke="#fff" stroke-width="1.5" />
-                  <line class="th2__beam-core" x1="128" y1="70" x2="172" y2="70" stroke="rgba(255,255,255,0.28)" stroke-width="1.2" stroke-dasharray="2 3" />
-                  <polygon class="th2__prism-poly" points="150,18 205,102 95,102" fill="none" stroke="#4a4752" stroke-width="1.2" />
-                  <line class="th2__ray" data-ray="personal" x1="172" y1="70" x2="340" y2="34" stroke="#ff6b81" stroke-width="1.5" />
-                  <line class="th2__ray" data-ray="opinions" x1="172" y1="70" x2="340" y2="56" stroke="#f5c542" stroke-width="1.5" />
-                  <line class="th2__ray" data-ray="tutorials" x1="172" y1="70" x2="340" y2="78" stroke="#3ddbd9" stroke-width="1.5" />
-                  <line class="th2__ray" data-ray="architecture" x1="172" y1="70" x2="340" y2="100" stroke="#7c8cff" stroke-width="1.5" />
+                <svg aria-hidden="true" viewBox="0 0 340 120" width="300" height="106" class="th2__svg">
+                  <defs>
+                    <linearGradient id="th2LiveCoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85" />
+                      <stop offset="100%" stop-color="${meta.color}" stop-opacity="0.55" />
+                    </linearGradient>
+                    <linearGradient id="th2LivePrismFill" x1="50%" y1="0%" x2="50%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.07" />
+                      <stop offset="100%" stop-color="${meta.color}" stop-opacity="0.02" />
+                    </linearGradient>
+                  </defs>
+                  <line class="th2__beam-in" x1="0" y1="70" x2="123" y2="70" stroke="rgba(255,255,255,0.45)" stroke-width="1.5" />
+                  <line class="th2__beam-pulse" x1="0" y1="70" x2="123" y2="70" stroke="#ffffff" stroke-width="2" />
+                  <polygon class="th2__caustic" points="123,70 175,60 175,80" fill="url(#th2LiveCoreGrad)" opacity="0.32" />
+                  <line class="th2__beam-core" x1="123" y1="70" x2="174" y2="68" stroke="url(#th2LiveCoreGrad)" stroke-width="1.6" />
+                  <polygon class="th2__prism-glow" points="150,18 205,102 95,102" fill="url(#th2LivePrismFill)" stroke="#5e5a68" stroke-width="1.25" />
+                  <polygon class="th2__prism-trace" points="150,18 205,102 95,102" fill="none" stroke="#ffffff" stroke-width="1.35" />
+                  <circle class="th2__node-in" cx="123" cy="70" r="2.2" fill="#ffffff" />
+                  <circle class="th2__node-out" cx="174" cy="68" r="2" fill="${meta.color}" opacity="0.85" />
+
+                  <g class="th2__ray-group" data-ray="personal">
+                    <line class="th2__ray" x1="174" y1="68" x2="340" y2="34" stroke="#ff6b81" stroke-width="1.5" />
+                    <line class="th2__ray-flow th2__ray-flow--1" x1="174" y1="68" x2="340" y2="34" stroke="#ff94a4" stroke-width="2.2" />
+                  </g>
+                  <g class="th2__ray-group" data-ray="opinions">
+                    <line class="th2__ray" x1="174" y1="68" x2="340" y2="56" stroke="#f5c542" stroke-width="1.5" />
+                    <line class="th2__ray-flow th2__ray-flow--2" x1="174" y1="68" x2="340" y2="56" stroke="#ffe082" stroke-width="2.2" />
+                  </g>
+                  <g class="th2__ray-group" data-ray="tutorials">
+                    <line class="th2__ray" x1="174" y1="68" x2="340" y2="78" stroke="#3ddbd9" stroke-width="1.5" />
+                    <line class="th2__ray-flow th2__ray-flow--3" x1="174" y1="68" x2="340" y2="78" stroke="#88f7f5" stroke-width="2.2" />
+                  </g>
+                  <g class="th2__ray-group" data-ray="architecture">
+                    <line class="th2__ray" x1="174" y1="68" x2="340" y2="100" stroke="#7c8cff" stroke-width="1.5" />
+                    <line class="th2__ray-flow th2__ray-flow--4" x1="174" y1="68" x2="340" y2="100" stroke="#aeb8ff" stroke-width="2.2" />
+                  </g>
                 </svg>
                 <div class="th2__wavelength">
                   <span class="th2__wavelength-dot" style="background:${meta.color};box-shadow:0 0 10px ${meta.color}"></span>
@@ -699,9 +715,9 @@ export async function syncBlogFromCms(): Promise<void> {
                 </div>
               </div>
 
-              <div class="th2-reader__progress-card">
+              <div class="th2-reader__progress-line">
                 <div class="th2-reader__progress-head">
-                  <span>reading progress</span>
+                  <span>reading</span>
                   <span id="th2ReadPercent" style="color:${meta.color}">0%</span>
                 </div>
                 <div class="th2-reader__progress-track">
@@ -710,20 +726,24 @@ export async function syncBlogFromCms(): Promise<void> {
               </div>
 
               ${tocHtml}
+              ${othersHtml}
             </aside>
 
             <div class="th2-reader__center" id="articleBody">
               <div class="th2__spine th2-reader__spine">
                 <header class="th2-reader__header">
                   <span class="th2__dot th2__dot--featured" style="background:${meta.color}"></span>
-                  <div class="th2__meta" style="color:${meta.color}">
-                    <span>${esc(found.counterNum)}</span>
-                    <span>&middot;</span>
-                    <span>${esc(meta.short)}</span>
-                    <span>&middot;</span>
-                    <span>${esc(found.dateDisplay)}</span>
-                    <span>&middot;</span>
-                    <span>${found.readingTime} min read</span>
+                  <div class="th2__featured-head">
+                    <div class="th2__meta" style="color:${meta.color}">
+                      <span>${esc(found.counterNum)}</span>
+                      <span>&middot;</span>
+                      <span>${esc(meta.short)}</span>
+                      <span>&middot;</span>
+                      <span>${esc(found.dateDisplay)}</span>
+                      <span>&middot;</span>
+                      <span>${found.readingTime} min read</span>
+                    </div>
+                    <span class="th2__featured-wavelength">${esc(found.roleSummary)}</span>
                   </div>
                   <h1 class="th2-reader__title">
                     ${esc(found.heroTitle)}
@@ -732,42 +752,29 @@ export async function syncBlogFromCms(): Promise<void> {
                   <p class="th2-reader__lead">${esc(found.lead)}</p>
                   <div class="th2-reader__header-actions">
                     <a href="#${esc(found.toc[0]?.id || 'articleBody')}" class="th2__featured-cta" style="border-bottom-color:${meta.color}">
-                      start reading &darr;
+                      read thread &darr;
                     </a>
                     ${
                       found.repoUrl
-                        ? `<a href="${esc(found.repoUrl)}" target="_blank" rel="noopener noreferrer" class="th2-reader__repo-link"><span>view source repository</span><span aria-hidden="true">&nearr;</span></a>`
+                        ? `<a href="${esc(found.repoUrl)}" target="_blank" rel="noopener noreferrer" class="th2-reader__repo-link"><span>source repository &nearr;</span></a>`
                         : ''
                     }
+                    <button type="button" class="th2-reader__inline-btn" data-copy-href="/blog/live?slug=${encodeURIComponent(found.slug)}">copy link</button>
                   </div>
                 </header>
 
                 ${renderArticleBlocksHtml(found.blocks, cmsBase, meta.color)}
 
                 <footer class="th2-reader__footer">
+                  <div class="th2-reader__bottom-nav">
+                    <a href="/thoughts" class="th2-reader__back" data-nav>&larr; back to thoughts</a>
+                  </div>
                   <p class="th2__quote">
                     &ldquo;The code compiles, but the real question is &mdash; did you learn something today?&rdquo;
                   </p>
                 </footer>
               </div>
             </div>
-
-            <aside class="th2-reader__right">
-              <div class="th2-reader__card">
-                <div class="th2__inspector-label">&gt; thread_telemetry // specs</div>
-                <dl class="th2-reader__specs">
-                  <div><dt>spectrum</dt><dd style="color:${meta.color}">${esc(meta.wavelength)}</dd></div>
-                  <div><dt>published</dt><dd>${esc(found.dateDisplay)}</dd></div>
-                  <div><dt>reading time</dt><dd>${found.readingTime} min</dd></div>
-                  <div><dt>domain</dt><dd>${esc(found.roleSummary)}</dd></div>
-                </dl>
-                <div class="th2-reader__quick-actions">
-                  <button type="button" class="th2__inspector-copy" data-copy-href="/blog/live?slug=${encodeURIComponent(found.slug)}">[ copy thread link ]</button>
-                  <button type="button" class="th2__inspector-copy" data-scroll-top>[ &uarr; top ]</button>
-                </div>
-              </div>
-              ${othersHtml}
-            </aside>
           </div>
         </section>`;
     }

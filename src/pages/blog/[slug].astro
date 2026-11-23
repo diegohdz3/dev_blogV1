@@ -56,7 +56,7 @@ const otherArticles = allArticles.filter((a) => a.slug !== article.slug);
     </div>
 
     <div class="th2-reader__workbench">
-      <!-- ==================== ZONE 1 (LEFT EDGE): SCHEMATIC PRISM + READING PROGRESS + LIVE TOC ==================== -->
+      <!-- ==================== LEFT COLUMN: ANIMATED PRISM + PROGRESS + TOC + OTHER WAVELENGTHS ==================== -->
       <aside class="th2-reader__left">
         <a href="/thoughts" class="th2-reader__back" data-nav>
           <span aria-hidden="true">&larr;</span>
@@ -67,17 +67,45 @@ const otherArticles = allArticles.filter((a) => a.slug !== article.slug);
           <svg
             aria-hidden="true"
             viewBox="0 0 340 120"
-            width="280"
-            height="98"
+            width="300"
+            height="106"
             class="th2__svg"
           >
-            <line class="th2__beam-in" x1="0" y1="70" x2="128" y2="70" stroke="#fff" stroke-width="1.5" />
-            <line class="th2__beam-core" x1="128" y1="70" x2="172" y2="70" stroke="rgba(255,255,255,0.28)" stroke-width="1.2" stroke-dasharray="2 3" />
-            <polygon class="th2__prism-poly" points="150,18 205,102 95,102" fill="none" stroke="#4a4752" stroke-width="1.2" />
-            <line class="th2__ray" data-ray="personal" x1="172" y1="70" x2="340" y2="34" stroke="#ff6b81" stroke-width="1.5" />
-            <line class="th2__ray" data-ray="opinions" x1="172" y1="70" x2="340" y2="56" stroke="#f5c542" stroke-width="1.5" />
-            <line class="th2__ray" data-ray="tutorials" x1="172" y1="70" x2="340" y2="78" stroke="#3ddbd9" stroke-width="1.5" />
-            <line class="th2__ray" data-ray="architecture" x1="172" y1="70" x2="340" y2="100" stroke="#7c8cff" stroke-width="1.5" />
+            <defs>
+              <linearGradient id="th2ReaderCoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85" />
+                <stop offset="100%" stop-color={meta.color} stop-opacity="0.55" />
+              </linearGradient>
+              <linearGradient id="th2ReaderPrismFill" x1="50%" y1="0%" x2="50%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.07" />
+                <stop offset="100%" stop-color={meta.color} stop-opacity="0.02" />
+              </linearGradient>
+            </defs>
+            <line class="th2__beam-in" x1="0" y1="70" x2="123" y2="70" stroke="rgba(255,255,255,0.45)" stroke-width="1.5" />
+            <line class="th2__beam-pulse" x1="0" y1="70" x2="123" y2="70" stroke="#ffffff" stroke-width="2" />
+            <polygon class="th2__caustic" points="123,70 175,60 175,80" fill="url(#th2ReaderCoreGrad)" opacity="0.32" />
+            <line class="th2__beam-core" x1="123" y1="70" x2="174" y2="68" stroke="url(#th2ReaderCoreGrad)" stroke-width="1.6" />
+            <polygon class="th2__prism-glow" points="150,18 205,102 95,102" fill="url(#th2ReaderPrismFill)" stroke="#5e5a68" stroke-width="1.25" />
+            <polygon class="th2__prism-trace" points="150,18 205,102 95,102" fill="none" stroke="#ffffff" stroke-width="1.35" />
+            <circle class="th2__node-in" cx="123" cy="70" r="2.2" fill="#ffffff" />
+            <circle class="th2__node-out" cx="174" cy="68" r="2" fill={meta.color} opacity="0.85" />
+
+            <g class="th2__ray-group" data-ray="personal">
+              <line class="th2__ray" x1="174" y1="68" x2="340" y2="34" stroke="#ff6b81" stroke-width="1.5" />
+              <line class="th2__ray-flow th2__ray-flow--1" x1="174" y1="68" x2="340" y2="34" stroke="#ff94a4" stroke-width="2.2" />
+            </g>
+            <g class="th2__ray-group" data-ray="opinions">
+              <line class="th2__ray" x1="174" y1="68" x2="340" y2="56" stroke="#f5c542" stroke-width="1.5" />
+              <line class="th2__ray-flow th2__ray-flow--2" x1="174" y1="68" x2="340" y2="56" stroke="#ffe082" stroke-width="2.2" />
+            </g>
+            <g class="th2__ray-group" data-ray="tutorials">
+              <line class="th2__ray" x1="174" y1="68" x2="340" y2="78" stroke="#3ddbd9" stroke-width="1.5" />
+              <line class="th2__ray-flow th2__ray-flow--3" x1="174" y1="68" x2="340" y2="78" stroke="#88f7f5" stroke-width="2.2" />
+            </g>
+            <g class="th2__ray-group" data-ray="architecture">
+              <line class="th2__ray" x1="174" y1="68" x2="340" y2="100" stroke="#7c8cff" stroke-width="1.5" />
+              <line class="th2__ray-flow th2__ray-flow--4" x1="174" y1="68" x2="340" y2="100" stroke="#aeb8ff" stroke-width="2.2" />
+            </g>
           </svg>
           <div class="th2__wavelength">
             <span class="th2__wavelength-dot" style={`background:${meta.color};box-shadow:0 0 10px ${meta.color}`}></span>
@@ -85,10 +113,10 @@ const otherArticles = allArticles.filter((a) => a.slug !== article.slug);
           </div>
         </div>
 
-        <!-- Live Reading Progress Meter -->
-        <div class="th2-reader__progress-card">
+        <!-- Frameless Reading Progress Line -->
+        <div class="th2-reader__progress-line">
           <div class="th2-reader__progress-head">
-            <span>reading progress</span>
+            <span>reading</span>
             <span id="th2ReadPercent" style={`color:${meta.color}`}>0%</span>
           </div>
           <div class="th2-reader__progress-track">
@@ -96,10 +124,10 @@ const otherArticles = allArticles.filter((a) => a.slug !== article.slug);
           </div>
         </div>
 
-        <!-- Section Outline (Interactive Scroll-Spy TOC) -->
+        <!-- Frameless Section Outline (Interactive Scroll-Spy TOC) -->
         {article.toc && article.toc.length > 0 && (
           <nav class="th2-reader__toc" aria-label="Table of contents">
-            <div class="th2-reader__toc-title">&gt; sections // outline</div>
+            <div class="th2-reader__toc-title">/ chapters</div>
             <ol class="th2-reader__toc-list" id="th2ReaderTocList">
               {article.toc.map((sec, idx) => (
                 <li>
@@ -117,22 +145,42 @@ const otherArticles = allArticles.filter((a) => a.slug !== article.slug);
             </ol>
           </nav>
         )}
+
+        <!-- Frameless Thread Switcher -->
+        {otherArticles.length > 0 && (
+          <div class="th2-reader__others">
+            <div class="th2-reader__toc-title">/ other thoughts</div>
+            <div class="th2-reader__switcher">
+              {otherArticles.map((other) => {
+                const oMeta = CAT_META[other.category] || CAT_META.tutorials;
+                return (
+                  <a href={`/blog/${other.slug}`} class="th2-reader__switch-item" data-nav>
+                    <span class="th2-reader__switch-dot" style={`background:${oMeta.color}`}></span>
+                    <span class="th2-reader__switch-title">{other.title}</span>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </aside>
 
-      <!-- ==================== ZONE 2 (WIDE CENTER): FULL THOUGHT OPTICAL SPINE ==================== -->
+      <!-- ==================== RIGHT WIDE AREA: FULL THOUGHT OPTICAL SPINE ==================== -->
       <div class="th2-reader__center" id="articleBody">
         <div class="th2__spine th2-reader__spine">
-          <!-- Thought Header on the Spine -->
           <header class="th2-reader__header">
             <span class="th2__dot th2__dot--featured" style={`background:${meta.color}`}></span>
-            <div class="th2__meta" style={`color:${meta.color}`}>
-              <span>{article.counterNum}</span>
-              <span>&middot;</span>
-              <span>{meta.short}</span>
-              <span>&middot;</span>
-              <span>{article.dateDisplay}</span>
-              <span>&middot;</span>
-              <span>{article.readingTime} min read</span>
+            <div class="th2__featured-head">
+              <div class="th2__meta" style={`color:${meta.color}`}>
+                <span>{article.counterNum}</span>
+                <span>&middot;</span>
+                <span>{meta.short}</span>
+                <span>&middot;</span>
+                <span>{article.dateDisplay}</span>
+                <span>&middot;</span>
+                <span>{article.readingTime} min read</span>
+              </div>
+              <span class="th2__featured-wavelength">{article.roleSummary}</span>
             </div>
 
             <h1 class="th2-reader__title">
@@ -148,7 +196,7 @@ const otherArticles = allArticles.filter((a) => a.slug !== article.slug);
                 class="th2__featured-cta"
                 style={`border-bottom-color:${meta.color}`}
               >
-                start reading &darr;
+                read thread &darr;
               </a>
               {article.repoUrl && (
                 <a
@@ -157,105 +205,46 @@ const otherArticles = allArticles.filter((a) => a.slug !== article.slug);
                   rel="noopener noreferrer"
                   class="th2-reader__repo-link"
                 >
-                  <span>view source repository</span>
-                  <span aria-hidden="true">&nearr;</span>
+                  <span>source repository &nearr;</span>
                 </a>
               )}
+              <button
+                type="button"
+                class="th2-reader__inline-btn"
+                data-copy-href={`/blog/${article.slug}`}
+              >
+                copy link
+              </button>
             </div>
           </header>
 
           <!-- Full Article Content Blocks Along the Spine -->
           <BlockRenderer blocks={article.blocks} accentColor={meta.color} />
 
-          <!-- Author Signature & End Quote -->
+          <!-- Author Signature, Next Thread Link & End Quote -->
           <footer class="th2-reader__footer">
             <AuthorSignature roleSummary={article.roleSummary} publishedAt={article.dateDisplay} />
+
+            <div class="th2-reader__bottom-nav">
+              <a href="/thoughts" class="th2-reader__back" data-nav>&larr; back to thoughts</a>
+              {nextArticle && nextArticle.slug !== article.slug && (
+                <a
+                  href={`/blog/${nextArticle.slug}`}
+                  class="th2__featured-cta"
+                  style={`border-bottom-color:${(CAT_META[nextArticle.category] || meta).color}`}
+                  data-nav
+                >
+                  next: {nextArticle.title} &rarr;
+                </a>
+              )}
+            </div>
+
             <p class="th2__quote">
               &ldquo;The code compiles, but the real question is &mdash; did you learn something today?&rdquo;
             </p>
           </footer>
         </div>
       </div>
-
-      <!-- ==================== ZONE 3 (RIGHT EDGE): THREAD SPECS & SPECTRUM SWITCHER ==================== -->
-      <aside class="th2-reader__right">
-        <div class="th2-reader__card">
-          <div class="th2__inspector-label">&gt; thread_telemetry // specs</div>
-          <dl class="th2-reader__specs">
-            <div>
-              <dt>spectrum</dt>
-              <dd style={`color:${meta.color}`}>{meta.wavelength}</dd>
-            </div>
-            <div>
-              <dt>published</dt>
-              <dd>{article.dateDisplay}</dd>
-            </div>
-            <div>
-              <dt>reading time</dt>
-              <dd>{article.readingTime} min</dd>
-            </div>
-            <div>
-              <dt>domain</dt>
-              <dd>{article.roleSummary}</dd>
-            </div>
-          </dl>
-
-          <div class="th2-reader__quick-actions">
-            <button
-              type="button"
-              class="th2__inspector-copy"
-              data-copy-href={`/blog/${article.slug}`}
-            >
-              [ copy thread link ]
-            </button>
-            <button
-              type="button"
-              class="th2__inspector-copy"
-              data-scroll-top
-            >
-              [ &uarr; top ]
-            </button>
-          </div>
-        </div>
-
-        {otherArticles.length > 0 && (
-          <div class="th2-reader__card">
-            <div class="th2__inspector-label">&gt; other_wavelengths // switch thread</div>
-            <div class="th2-reader__switcher">
-              {otherArticles.map((other) => {
-                const oMeta = CAT_META[other.category] || CAT_META.tutorials;
-                return (
-                  <a
-                    href={`/blog/${other.slug}`}
-                    class="th2-reader__switch-item"
-                    data-nav
-                  >
-                    <span class="th2-reader__switch-dot" style={`background:${oMeta.color}`}></span>
-                    <div class="th2-reader__switch-body">
-                      <span class="th2-reader__switch-cat" style={`color:${oMeta.color}`}>
-                        {oMeta.short} &middot; {other.readingTime} min
-                      </span>
-                      <span class="th2-reader__switch-title">{other.title}</span>
-                    </div>
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {nextArticle && nextArticle.slug !== article.slug && (
-          <a
-            href={`/blog/${nextArticle.slug}`}
-            class="th2-reader__next-card"
-            style={`border-color:${(CAT_META[nextArticle.category] || meta).color}`}
-            data-nav
-          >
-            <span class="th2-reader__next-eyebrow">next on spectrum &rarr;</span>
-            <span class="th2-reader__next-title">{nextArticle.title}</span>
-          </a>
-        )}
-      </aside>
     </div>
   </section>
 </BlogLayout>

@@ -22,36 +22,16 @@ const articles = [...rawArticles].sort((a, b) => {
 
 const CAT_META: Record<
   BlogArticle['category'],
-  { color: string; short: string; wavelength: string; nm: string }
+  { color: string; short: string; wavelength: string; exitY: number }
 > = {
-  personal: { color: '#ff6b81', short: 'personal', wavelength: 'λ 650nm · personal', nm: '650nm' },
-  opinions: { color: '#f5c542', short: 'opinion', wavelength: 'λ 590nm · opinion', nm: '590nm' },
-  tutorials: { color: '#3ddbd9', short: 'tutorial', wavelength: 'λ 490nm · tutorial', nm: '490nm' },
-  architecture: { color: '#7c8cff', short: 'case study', wavelength: 'λ 410nm · case study', nm: '410nm' },
+  personal: { color: '#ff6b81', short: 'personal', wavelength: 'λ 650nm · personal', exitY: 34 },
+  opinions: { color: '#f5c542', short: 'opinion', wavelength: 'λ 590nm · opinion', exitY: 56 },
+  tutorials: { color: '#3ddbd9', short: 'tutorial', wavelength: 'λ 490nm · tutorial', exitY: 78 },
+  architecture: { color: '#7c8cff', short: 'case study', wavelength: 'λ 410nm · case study', exitY: 100 },
 };
 
 function shortDate(dateStr: string): string {
   return String(dateStr || '').replace(/,\s*\d{4}$/, '');
-}
-
-function extractFirstSnippet(article: BlogArticle): { heading: string; body: string; code?: string } {
-  const blocks = article.blocks || [];
-  const firstHeading = blocks.find((b) => b.block_type === 'HEADING' || b.block_type === 'OVERVIEW_SECTION');
-  const firstPara = blocks.find((b) => b.block_type === 'PARAGRAPH' && b.content_payload?.text);
-  const firstCode = blocks.find((b) => b.block_type === 'CODE' && b.content_payload?.code);
-  const heading =
-    firstHeading?.content_payload?.text ||
-    firstHeading?.content_payload?.heading ||
-    'Thread Overview';
-  const rawBody =
-    firstPara?.content_payload?.text ||
-    firstHeading?.content_payload?.text ||
-    article.lead;
-  const body = String(rawBody).split(/\n\n+/)[0].slice(0, 220);
-  const code = firstCode?.content_payload?.code
-    ? String(firstCode.content_payload.code).split('\n').slice(0, 6).join('\n')
-    : undefined;
-  return { heading: String(heading), body, code };
 }
 
 function buildPanelView(filter: 'all' | BlogArticle['category']) {
@@ -99,32 +79,6 @@ const counts = {
 };
 
 const totalMinutes = articles.reduce((acc, a) => acc + (Number(a.readingTime) || 6), 0);
-
-// Inspector dataset serialized for instant hover/click preview on the right rail
-const inspectorItems = articles.map((a, idx) => {
-  const meta = CAT_META[a.category];
-  const snippet = extractFirstSnippet(a);
-  return {
-    slug: a.slug,
-    href: `/blog/${a.slug}`,
-    num: String(idx + 1).padStart(2, '0'),
-    title: a.title,
-    lead: a.lead,
-    category: a.category,
-    categoryShort: meta.short,
-    color: meta.color,
-    wavelength: meta.wavelength,
-    dateDisplay: a.dateDisplay,
-    readingTime: a.readingTime,
-    roleSummary: a.roleSummary,
-    toc: (a.toc || []).slice(0, 6),
-    snippetHeading: snippet.heading,
-    snippetBody: snippet.body,
-    snippetCode: snippet.code || '',
-  };
-});
-
-const initialInspect = inspectorItems[0] || null;
 ---
 <BlogLayout
   title="Thoughts — Diego Cortés Hernandez · Dev Blog"
@@ -140,7 +94,7 @@ const initialInspect = inspectorItems[0] || null;
     </div>
 
     <div class="th2__workbench">
-      <!-- ==================== ZONE 1 (LEFT EDGE): SCHEMATIC PRISM + FILTERS + LIVE SEARCH ==================== -->
+      <!-- ==================== LEFT COLUMN: ANIMATED OPTICAL PRISM + FILTERS ==================== -->
       <aside class="th2__left">
         <div class="th2__diagram" id="th2Diagram" data-active-ray="all">
           <svg
@@ -151,13 +105,50 @@ const initialInspect = inspectorItems[0] || null;
             height="120"
             class="th2__svg"
           >
-            <line class="th2__beam-in" x1="0" y1="70" x2="128" y2="70" stroke="#fff" stroke-width="1.5" />
-            <line class="th2__beam-core" x1="128" y1="70" x2="172" y2="70" stroke="rgba(255,255,255,0.28)" stroke-width="1.2" stroke-dasharray="2 3" />
-            <polygon class="th2__prism-poly" points="150,18 205,102 95,102" fill="none" stroke="#4a4752" stroke-width="1.2" />
-            <line class="th2__ray" data-ray="personal" x1="172" y1="70" x2="340" y2="34" stroke="#ff6b81" stroke-width="1.5" />
-            <line class="th2__ray" data-ray="opinions" x1="172" y1="70" x2="340" y2="56" stroke="#f5c542" stroke-width="1.5" />
-            <line class="th2__ray" data-ray="tutorials" x1="172" y1="70" x2="340" y2="78" stroke="#3ddbd9" stroke-width="1.5" />
-            <line class="th2__ray" data-ray="architecture" x1="172" y1="70" x2="340" y2="100" stroke="#7c8cff" stroke-width="1.5" />
+            <defs>
+              <linearGradient id="th2CoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85" />
+                <stop offset="100%" stop-color="#3ddbd9" stop-opacity="0.45" />
+              </linearGradient>
+              <linearGradient id="th2PrismFill" x1="50%" y1="0%" x2="50%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.07" />
+                <stop offset="100%" stop-color="#7c8cff" stop-opacity="0.015" />
+              </linearGradient>
+            </defs>
+
+            <!-- Base Incident Beam + Animated Photon Pulse -->
+            <line class="th2__beam-in" x1="0" y1="70" x2="123" y2="70" stroke="rgba(255,255,255,0.45)" stroke-width="1.5" />
+            <line class="th2__beam-pulse" x1="0" y1="70" x2="123" y2="70" stroke="#ffffff" stroke-width="2" />
+
+            <!-- Internal Caustic Refraction Fan inside Prism -->
+            <polygon class="th2__caustic" points="123,70 175,60 175,80" fill="url(#th2CoreGrad)" opacity="0.32" />
+            <line class="th2__beam-core" id="th2BeamCore" x1="123" y1="70" x2="174" y2="68" stroke="url(#th2CoreGrad)" stroke-width="1.6" />
+
+            <!-- Animated Breathing Prism Triangle -->
+            <polygon class="th2__prism-glow" points="150,18 205,102 95,102" fill="url(#th2PrismFill)" stroke="#5e5a68" stroke-width="1.25" />
+            <polygon class="th2__prism-trace" points="150,18 205,102 95,102" fill="none" stroke="#ffffff" stroke-width="1.35" />
+
+            <!-- Entry & Exit Refraction Nodes -->
+            <circle class="th2__node-in" cx="123" cy="70" r="2.2" fill="#ffffff" />
+            <circle class="th2__node-out" cx="174" cy="68" r="2" fill="#ffffff" opacity="0.75" />
+
+            <!-- 4 Dispersed Spectrum Rays (Base + Flowing Photon Streams) -->
+            <g class="th2__ray-group" data-ray="personal">
+              <line class="th2__ray" x1="174" y1="68" x2="340" y2="34" stroke="#ff6b81" stroke-width="1.5" />
+              <line class="th2__ray-flow th2__ray-flow--1" x1="174" y1="68" x2="340" y2="34" stroke="#ff94a4" stroke-width="2.2" />
+            </g>
+            <g class="th2__ray-group" data-ray="opinions">
+              <line class="th2__ray" x1="174" y1="68" x2="340" y2="56" stroke="#f5c542" stroke-width="1.5" />
+              <line class="th2__ray-flow th2__ray-flow--2" x1="174" y1="68" x2="340" y2="56" stroke="#ffe082" stroke-width="2.2" />
+            </g>
+            <g class="th2__ray-group" data-ray="tutorials">
+              <line class="th2__ray" x1="174" y1="68" x2="340" y2="78" stroke="#3ddbd9" stroke-width="1.5" />
+              <line class="th2__ray-flow th2__ray-flow--3" x1="174" y1="68" x2="340" y2="78" stroke="#88f7f5" stroke-width="2.2" />
+            </g>
+            <g class="th2__ray-group" data-ray="architecture">
+              <line class="th2__ray" x1="174" y1="68" x2="340" y2="100" stroke="#7c8cff" stroke-width="1.5" />
+              <line class="th2__ray-flow th2__ray-flow--4" x1="174" y1="68" x2="340" y2="100" stroke="#aeb8ff" stroke-width="2.2" />
+            </g>
           </svg>
           <div class="th2__wavelength" id="th2Wavelength">
             <span class="th2__wavelength-dot" id="th2WavelengthDot"></span>
@@ -245,37 +236,22 @@ const initialInspect = inspectorItems[0] || null;
           </button>
         </div>
 
-        <!-- Live Instant Filter / Search Input -->
-        <div class="th2__search-box">
+        <!-- Minimalist Bottom Line Filter (No ugly boxes) -->
+        <div class="th2__search-line">
           <span class="th2__search-prefix">/</span>
           <input
             type="search"
             id="th2SearchInput"
             class="th2__search-input"
-            placeholder="filter threads, topics or tags..."
+            placeholder="filter threads..."
             autocomplete="off"
             aria-label="Filter thoughts"
           />
-          <kbd class="th2__search-kbd">/</kbd>
-        </div>
-
-        <!-- Spectrum Distribution Telemetry -->
-        <div class="th2__telemetry">
-          <div class="th2__telemetry-head">
-            <span id="th2TotalCount">{String(counts.all).padStart(2, '0')} threads</span>
-            <span>&middot;</span>
-            <span id="th2TotalMinutes">{totalMinutes} min total read</span>
-          </div>
-          <div class="th2__telemetry-bar" aria-hidden="true">
-            <span style={`flex:${Math.max(1, counts.personal)};background:#ff6b81`}></span>
-            <span style={`flex:${Math.max(1, counts.opinions)};background:#f5c542`}></span>
-            <span style={`flex:${Math.max(1, counts.tutorials)};background:#3ddbd9`}></span>
-            <span style={`flex:${Math.max(1, counts.architecture)};background:#7c8cff`}></span>
-          </div>
+          <span class="th2__search-meta" id="th2TotalCount">{String(counts.all).padStart(2, '0')} · {totalMinutes}m</span>
         </div>
       </aside>
 
-      <!-- ==================== ZONE 2 (WIDE CENTER): OPTICAL TIMELINE SPINE ==================== -->
+      <!-- ==================== RIGHT WIDE AREA: EXPANDED OPTICAL TIMELINE SPINE ==================== -->
       <div class="th2__center">
         <div class="thoughts__panels th2__panels">
           {panels.map((p) => {
@@ -293,34 +269,54 @@ const initialInspect = inspectorItems[0] || null;
                       class="th2__featured"
                       data-category={featured.category}
                       data-prism-hover={featured.category}
-                      data-inspect-slug={featured.slug}
                       data-search-text={`${featured.title} ${featured.lead} ${fMeta.short}`.toLowerCase()}
                       style={`--cat-color: ${fMeta.color}`}
                     >
                       <span class="th2__dot th2__dot--featured" style={`background:${fMeta.color}`}></span>
-                      <div class="th2__meta" style={`color:${fMeta.color}`}>
-                        <span>01</span>
-                        <span>&middot;</span>
-                        <span>{fMeta.short}</span>
-                        <span>&middot;</span>
-                        <span>{featured.dateDisplay}</span>
-                        <span>&middot;</span>
-                        <span>{featured.readingTime} min</span>
+
+                      <div class="th2__featured-head">
+                        <div class="th2__meta" style={`color:${fMeta.color}`}>
+                          <span>01</span>
+                          <span>&middot;</span>
+                          <span>{fMeta.short}</span>
+                          <span>&middot;</span>
+                          <span>{featured.dateDisplay}</span>
+                          <span>&middot;</span>
+                          <span>{featured.readingTime} min</span>
+                        </div>
+                        <span class="th2__featured-wavelength">{fMeta.wavelength}</span>
                       </div>
+
                       <h2 class="th2__featured-title">
                         <a href={`/blog/${featured.slug}`} data-nav>{featured.title}</a>
                       </h2>
-                      <p class="th2__featured-lead">{featured.lead}</p>
-                      <div class="th2__featured-actions">
-                        <a
-                          href={`/blog/${featured.slug}`}
-                          class="th2__featured-cta"
-                          style={`border-bottom-color:${fMeta.color}`}
-                          data-nav
-                        >
-                          read thread &rarr;
-                        </a>
-                        <span class="th2__featured-role">{featured.roleSummary}</span>
+
+                      <div class="th2__featured-grid">
+                        <div class="th2__featured-main">
+                          <p class="th2__featured-lead">{featured.lead}</p>
+                          <a
+                            href={`/blog/${featured.slug}`}
+                            class="th2__featured-cta"
+                            style={`border-bottom-color:${fMeta.color}`}
+                            data-nav
+                          >
+                            read thread &rarr;
+                          </a>
+                        </div>
+
+                        {featured.toc && featured.toc.length > 0 && (
+                          <div class="th2__featured-chapters">
+                            <span class="th2__chapters-label">/ chapters</span>
+                            <div class="th2__chapters-list">
+                              {featured.toc.slice(0, 4).map((sec, sIdx) => (
+                                <a href={`/blog/${featured.slug}#${sec.id}`} class="th2__chapter-link" data-nav>
+                                  <span class="th2__chapter-num">{String(sIdx + 1).padStart(2, '0')}</span>
+                                  <span>{sec.label}</span>
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </article>
                   )}
@@ -333,7 +329,6 @@ const initialInspect = inspectorItems[0] || null;
                           class:list={['th2__row', { 'th2__row--dimmed': dimmed }]}
                           data-category={article.category}
                           data-prism-hover={article.category}
-                          data-inspect-slug={article.slug}
                           data-search-text={`${article.title} ${article.lead} ${rMeta.short}`.toLowerCase()}
                           style={`--cat-color: ${rMeta.color}`}
                         >
@@ -343,12 +338,24 @@ const initialInspect = inspectorItems[0] || null;
                             {article.title}
                           </a>
                           <div class="th2__row-meta">
+                            <span class="th2__row-role">{article.roleSummary}</span>
                             <span class="th2__row-cat" style={`color:${rMeta.color}`}>{rMeta.short}</span>
                             <span class="th2__date">{shortDate(article.dateDisplay)}</span>
                           </div>
-                          <p class="th2__ex">
-                            {article.lead} &middot; <span style={`color:${rMeta.color}`}>{article.readingTime} min</span>
-                          </p>
+                          <div class="th2__ex">
+                            <p class="th2__ex-text">
+                              {article.lead} &middot; <span style={`color:${rMeta.color}`}>{article.readingTime} min</span>
+                            </p>
+                            {article.toc && article.toc.length > 0 && (
+                              <div class="th2__ex-chapters">
+                                {article.toc.slice(0, 4).map((sec, sIdx) => (
+                                  <a href={`/blog/${article.slug}#${sec.id}`} data-nav>
+                                    <span>{String(sIdx + 1).padStart(2, '0')}</span> {sec.label}
+                                  </a>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </article>
                       );
                     })}
@@ -364,90 +371,6 @@ const initialInspect = inspectorItems[0] || null;
           })}
         </div>
       </div>
-
-      <!-- ==================== ZONE 3 (RIGHT EDGE): LIVE THREAD INSPECTOR & QUICK READER ==================== -->
-      <aside class="th2__inspector" id="th2Inspector" aria-label="Live thread inspector">
-        {initialInspect && (
-          <div class="th2__inspector-card" id="th2InspectorCard" style={`--inspect-color: ${initialInspect.color}`}>
-            <div class="th2__inspector-top">
-              <div class="th2__inspector-badge">
-                <span class="th2__inspector-dot" id="th2InspectDot" style={`background:${initialInspect.color}`}></span>
-                <span id="th2InspectWavelength" style={`color:${initialInspect.color}`}>{initialInspect.wavelength}</span>
-              </div>
-              <span class="th2__inspector-num" id="th2InspectNum">#{initialInspect.num}</span>
-            </div>
-
-            <h3 class="th2__inspector-title">
-              <a id="th2InspectTitleLink" href={initialInspect.href} data-nav>{initialInspect.title}</a>
-            </h3>
-
-            <div class="th2__inspector-meta" id="th2InspectMeta">
-              <span>{initialInspect.dateDisplay}</span>
-              <span>&middot;</span>
-              <span>{initialInspect.readingTime} min read</span>
-              <span>&middot;</span>
-              <span>{initialInspect.roleSummary}</span>
-            </div>
-
-            <!-- Interactive Section Map (TOC) -->
-            <div class="th2__inspector-block">
-              <div class="th2__inspector-label">&gt; thread_architecture // sections</div>
-              <ol class="th2__inspector-toc" id="th2InspectToc">
-                {initialInspect.toc.map((sec, sIdx) => (
-                  <li>
-                    <a href={`${initialInspect.href}#${sec.id}`} data-nav>
-                      <span class="th2__inspector-toc-idx">{String(sIdx + 1).padStart(2, '0')}</span>
-                      <span class="th2__inspector-toc-text">{sec.label}</span>
-                    </a>
-                  </li>
-                ))}
-              </ol>
-            </div>
-
-            <!-- Live Excerpt / Code Peek -->
-            <div class="th2__inspector-block">
-              <div class="th2__inspector-label" id="th2InspectSnippetLabel">
-                &gt; preview // {initialInspect.snippetHeading.toLowerCase()}
-              </div>
-              <p class="th2__inspector-excerpt" id="th2InspectSnippetBody">
-                {initialInspect.snippetBody}
-              </p>
-              <pre
-                class="th2__inspector-code"
-                id="th2InspectSnippetCode"
-                style={initialInspect.snippetCode ? '' : 'display:none'}
-              ><code>{initialInspect.snippetCode}</code></pre>
-            </div>
-
-            <div class="th2__inspector-actions">
-              <a
-                id="th2InspectOpenBtn"
-                href={initialInspect.href}
-                class="th2__inspector-open"
-                style={`border-color:${initialInspect.color};color:#fff`}
-                data-nav
-              >
-                <span>open full thread</span>
-                <span aria-hidden="true">&rarr;</span>
-              </a>
-              <button
-                type="button"
-                id="th2InspectCopyBtn"
-                class="th2__inspector-copy"
-                data-copy-href={initialInspect.href}
-              >
-                [ copy link ]
-              </button>
-            </div>
-          </div>
-        )}
-      </aside>
     </div>
-
-    <script
-      type="application/json"
-      id="th2InspectorData"
-      set:html={JSON.stringify(inspectorItems)}
-    ></script>
   </section>
 </BlogLayout>
