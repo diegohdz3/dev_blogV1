@@ -22,8 +22,6 @@ const {
   backLabel = 'hub',
   bodyClass = 'subpage',
 } = Astro.props;
-
-const metricsBaseUrl = import.meta.env.PUBLIC_METRICS_URL || '';
 ---
 <!doctype html>
 <html lang="en">
@@ -59,22 +57,6 @@ const metricsBaseUrl = import.meta.env.PUBLIC_METRICS_URL || '';
 
     <script>
       import '../scripts/blog-runtime';
-    </script>
-
-    <!-- Universal Privacy-First Beacon (metrics-collector-retriever :8000/v1/beacon.js) -->
-    <script is:inline define:vars={{ metricsBaseUrl }}>
-      (function loadBeacon() {
-        const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-        const base = (metricsBaseUrl || (isLocal ? 'http://127.0.0.1:8000' : '')).replace(/\/+$/, '');
-        if (!base) return;
-        const s = document.createElement('script');
-        s.defer = true;
-        s.src = `${base}/v1/beacon.js`;
-        s.dataset.site = 'diego-dev-blog';
-        s.dataset.collectUrl = `${base}/v1/collect`;
-        s.onerror = () => s.remove();
-        document.body.appendChild(s);
-      })();
     </script>
   </body>
 </html>

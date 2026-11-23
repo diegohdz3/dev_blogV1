@@ -270,7 +270,108 @@ function buildThreadCard(article: LiveArticle, idx: number): string {
     </article>`;
 }
 
+let activeVisitEventId = '';
+let activeVisitKey = '';
+let activeVisitPath = '';
+let activeVisitDocSlug = '';
+let activeVisitStartMs = 0;
+let unloadBound = false;
+
+function generateVisitId(): string {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+  } catch {
+    // fallback
+  }
+  return `ev-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function flushBlogVisitDwell(): void {
+  if (!activeVisitEventId || !activeVisitStartMs) return;
+  const cmsBase = resolveCmsBaseUrl();
+  if (!cmsBase) return;
+  const dwellSec = Math.max(0, Math.round((Date.now() - activeVisitStartMs) / 1000));
+  const payload = JSON.stringify({
+    event_id: activeVisitEventId,
+    site_slug: 'diego-dev-blog',
+    page_path: activeVisitPath || window.location.pathname || '/',
+    doc_slug: activeVisitDocSlug || undefined,
+    dwell_sec: dwellSec,
+  });
+
+  activeVisitEventId = '';
+  activeVisitStartMs = 0;
+
+  try {
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(
+        `${cmsBase}/api/v1/telemetry/collect`,
+        new Blob([payload], { type: 'text/plain;charset=UTF-8' })
+      );
+      return;
+    }
+  } catch {
+    // fallback to fetch keepalive
+  }
+
+  fetch(`${cmsBase}/api/v1/telemetry/collect`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+    body: payload,
+    keepalive: true,
+  }).catch(() => {});
+}
+
+export function trackBlogPageView(): void {
+  const cmsBase = resolveCmsBaseUrl();
+  if (!cmsBase) return;
+
+  if (!unloadBound) {
+    unloadBound = true;
+    window.addEventListener('pagehide', flushBlogVisitDwell);
+  }
+
+  const rawPath = window.location.pathname || '/';
+  const qsSlug = new URLSearchParams(window.location.search).get('slug') || '';
+  let docSlug = '';
+  let normalizedPath = rawPath;
+
+  if (rawPath.startsWith('/blog/live') && qsSlug) {
+    docSlug = qsSlug;
+    normalizedPath = `/blog/${qsSlug}`;
+  } else if (rawPath.startsWith('/blog/') && rawPath.length > 6) {
+    docSlug = rawPath.slice(6).replace(/\/+$/, '');
+    normalizedPath = `/blog/${docSlug}`;
+  }
+
+  const visitKey = `${normalizedPath}|${docSlug}`;
+  if (activeVisitEventId && activeVisitKey === visitKey) return;
+  if (activeVisitEventId) flushBlogVisitDwell();
+
+  activeVisitEventId = generateVisitId();
+  activeVisitKey = visitKey;
+  activeVisitPath = normalizedPath;
+  activeVisitDocSlug = docSlug;
+  activeVisitStartMs = Date.now();
+
+  fetch(`${cmsBase}/api/v1/telemetry/collect`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      event_id: activeVisitEventId,
+      site_slug: 'diego-dev-blog',
+      page_path: normalizedPath,
+      doc_slug: docSlug || undefined,
+      referrer: document.referrer || '',
+    }),
+    keepalive: true,
+  }).catch(() => {});
+}
+
 export async function syncBlogFromCms(): Promise<void> {
+  trackBlogPageView();
   const cmsBase = resolveCmsBaseUrl();
   if (!cmsBase) return;
 
