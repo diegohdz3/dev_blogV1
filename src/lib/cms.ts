@@ -44,6 +44,11 @@ export interface BlogArticle {
   readingTime: number;
   roleSummary: string;
   repoUrl?: string;
+  coverImage?: string;
+  tags?: string[];
+  showToc?: boolean;
+  seoTitle?: string;
+  seoDesc?: string;
   publishedAt: string;
   frozenTemplateName: string;
   blocks: CmsCanvasBlock[];
@@ -119,6 +124,14 @@ function mapCmsDocToArticle(doc: CmsDocument, index: number): BlogArticle {
     }
   }
 
+  const rawCover = String(heroBlock?.content_payload?.cover_image || meta.cover_image || '').trim();
+  const cmsBase = (process.env.CMS_API_URL || 'https://cms-core-api-production.up.railway.app').replace(/\/+$/, '');
+  const coverImage = rawCover
+    ? rawCover.startsWith('/uploads/')
+      ? `${cmsBase}${rawCover}`
+      : rawCover
+    : undefined;
+
   return {
     document_id: doc.document_id,
     slug: doc.slug,
@@ -135,6 +148,11 @@ function mapCmsDocToArticle(doc: CmsDocument, index: number): BlogArticle {
     readingTime: Number(meta.reading_time) || 6,
     roleSummary: String(meta.role_summary || 'Full-Stack & Frontend Engineering'),
     repoUrl: meta.repo_url ? String(meta.repo_url) : undefined,
+    coverImage,
+    tags: Array.isArray(meta.tags) ? meta.tags.map((t: unknown) => String(t)).filter(Boolean) : undefined,
+    showToc: meta.show_toc !== false,
+    seoTitle: meta.seo_title ? String(meta.seo_title) : undefined,
+    seoDesc: meta.seo_desc ? String(meta.seo_desc) : undefined,
     publishedAt: doc.published_at || doc.updated_at,
     frozenTemplateName: doc.frozen_template?.name || 'Plantilla Bitácora Técnica (Frozen)',
     blocks: sortedBlocks,

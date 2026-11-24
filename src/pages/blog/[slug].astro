@@ -38,8 +38,8 @@ const meta = CAT_META[article.category] || CAT_META.tutorials;
 const otherArticles = allArticles.filter((a) => a.slug !== article.slug);
 ---
 <BlogLayout
-  title={`${article.title} — Diego Cortés Hernandez`}
-  description={article.lead}
+  title={article.seoTitle || `${article.title} — Diego Cortés Hernandez`}
+  description={article.seoDesc || article.lead}
   activePage="article"
   indicator={`${article.counterNum} / ${meta.short}`}
   backHref="/thoughts"
@@ -125,7 +125,7 @@ const otherArticles = allArticles.filter((a) => a.slug !== article.slug);
         </div>
 
         <!-- Frameless Section Outline (Interactive Scroll-Spy TOC) -->
-        {article.toc && article.toc.length > 0 && (
+        {article.showToc !== false && article.toc && article.toc.length > 0 && (
           <nav class="th2-reader__toc" aria-label="Table of contents">
             <div class="th2-reader__toc-title">/ chapters</div>
             <ol class="th2-reader__toc-list" id="th2ReaderTocList">
@@ -170,6 +170,11 @@ const otherArticles = allArticles.filter((a) => a.slug !== article.slug);
         <div class="th2__spine th2-reader__spine">
           <header class="th2-reader__header">
             <span class="th2__dot th2__dot--featured" style={`background:${meta.color}`}></span>
+            {article.coverImage && (
+              <div class="th2-reader__cover">
+                <img src={article.coverImage} alt={article.title} loading="eager" />
+              </div>
+            )}
             <div class="th2__featured-head">
               <div class="th2__meta" style={`color:${meta.color}`}>
                 <span>{article.counterNum}</span>
@@ -189,6 +194,14 @@ const otherArticles = allArticles.filter((a) => a.slug !== article.slug);
             </h1>
 
             <p class="th2-reader__lead">{article.lead}</p>
+
+            {article.tags && article.tags.length > 0 && (
+              <div class="th2-reader__tags">
+                {article.tags.map((tag) => (
+                  <span class="th2-reader__tag">#{tag}</span>
+                ))}
+              </div>
+            )}
 
             <div class="th2-reader__header-actions">
               <a

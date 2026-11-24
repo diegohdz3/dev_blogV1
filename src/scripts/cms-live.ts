@@ -18,6 +18,10 @@ interface LiveArticle {
   readingTime: number;
   roleSummary: string;
   repoUrl?: string;
+  coverImage?: string;
+  tags?: string[];
+  showToc?: boolean;
+  seoTitle?: string;
   frozenTemplateName: string;
   blocks: CmsCanvasBlock[];
   toc: Array<{ id: string; label: string }>;
@@ -109,6 +113,10 @@ function mapDoc(doc: CmsDocument, index: number): LiveArticle {
     readingTime: Number(meta.reading_time) || 6,
     roleSummary: String(meta.role_summary || 'Full-Stack & Frontend Engineering'),
     repoUrl: meta.repo_url ? String(meta.repo_url) : undefined,
+    coverImage: String(heroBlock?.content_payload?.cover_image || meta.cover_image || '').trim() || undefined,
+    tags: Array.isArray(meta.tags) ? meta.tags.map((t: unknown) => String(t)).filter(Boolean) : undefined,
+    showToc: meta.show_toc !== false,
+    seoTitle: meta.seo_title ? String(meta.seo_title) : undefined,
     frozenTemplateName: doc.frozen_template?.name || 'Plantilla Bitácora Técnica (CMS)',
     blocks,
     toc,
@@ -144,6 +152,52 @@ function sanitizeInlineHtml(html: string): string {
   return html.replace(/<\/?(?!(?:strong|b|em|i|code|a|br)\b)[^>]*>/gi, '');
 }
 
+function formatInlineMd(text: unknown): string {
+  return esc(text)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+}
+
+function parseHighlightLines(spec: unknown): Set<number> {
+  const set = new Set<number>();
+  if (!spec) return set;
+  for (const part of String(spec).split(',')) {
+    const t = part.trim();
+    if (!t) continue;
+    if (t.includes('-')) {
+      const [s, e] = t.split('-').map((n) => parseInt(n.trim(), 10));
+      if (!Number.isNaN(s) && !Number.isNaN(e)) {
+        for (let i = Math.min(s, e); i <= Math.max(s, e); i++) set.add(i);
+      }
+    } else {
+      const n = parseInt(t, 10);
+      if (!Number.isNaN(n)) set.add(n);
+    }
+  }
+  return set;
+}
+
+function highlightCodeLine(line: string, lang?: string): string {
+  let s = esc(line);
+  if (!s.trim()) return ' ';
+  if ((lang || '').toLowerCase() === 'text') return s;
+  const slots: string[] = [];
+  const stash = (cls: string, val: string) => {
+    const idx = slots.push(`<span class="${cls}">${val}</span>`) - 1;
+    return `\u0000T${idx}\u0000`;
+  };
+  s = s.replace(/(\/\/.*$|#.*$|--.*$)/g, (m) => stash('tok-cmt', m));
+  s = s.replace(/(&quot;(?:[^&]|&(?!quot;))*&quot;|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)/g, (m) => stash('tok-str', m));
+  s = s.replace(
+    /\b(import|export|from|const|let|var|function|async|await|return|if|else|for|while|switch|case|break|continue|new|class|extends|implements|interface|type|enum|public|private|protected|readonly|try|catch|finally|throw|true|false|null|undefined|SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|JOIN|LEFT|INNER|ON|GROUP|BY|ORDER|LIMIT|CREATE|TABLE|AS|AND|OR|NOT|IN)\b/g,
+    (m) => stash('tok-kw', m)
+  );
+  s = s.replace(/\b(\d+(?:\.\d+)?)\b/g, (m) => stash('tok-num', m));
+  s = s.replace(/\b([a-zA-Z_]\w*)(?=\s*\()/g, (m) => stash('tok-fn', m));
+  return s.replace(/\u0000T(\d+)\u0000/g, (_, idx) => slots[Number(idx)] || '');
+}
+
 function renderArticleBlocksHtml(blocks: CmsCanvasBlock[], cmsBase: string, accentColor: string): string {
   const contentBlocks = blocks.filter((b) => b.block_type !== 'CASE_HERO');
   let sectionIdx = 0;
@@ -169,50 +223,76 @@ function renderArticleBlocksHtml(blocks: CmsCanvasBlock[], cmsBase: string, acce
           const paras = String(p.text || '')
             .split(/\n\n+/)
             .filter(Boolean)
-            .map((t) => `<p>${esc(t)}</p>`)
+            .map((t) => `<p>${formatInlineMd(t)}</p>`)
             .join('');
           const bodyHtml = typeof p.html === 'string' ? `<p>${sanitizeInlineHtml(p.html)}</p>` : paras;
           const list = Array.isArray(p.list) ? p.list : [];
           const listHtml = list.length
             ? p.ordered
-              ? `<ol class="th-article__list th-article__list--ordered">${list.map((li) => `<li>${esc(li)}</li>`).join('')}</ol>`
-              : `<ul class="th-article__list">${list.map((li) => `<li>${esc(li)}</li>`).join('')}</ul>`
+              ? `<ol class="th-article__list th-article__list--ordered">${list.map((li) => `<li>${formatInlineMd(li)}</li>`).join('')}</ol>`
+              : `<ul class="th-article__list">${list.map((li) => `<li>${formatInlineMd(li)}</li>`).join('')}</ul>`
             : '';
           return bodyHtml + listHtml;
         }
         if (item.block_type === 'CODE') {
+          const rawCode = String(p.code || '');
+          const lines = rawCode.split('\n');
+          const hlSet = parseHighlightLines(p.highlightLines);
+          const showNums = p.showLineNumbers !== false;
+          const linesHtml = lines
+            .map((line, i) => {
+              const ln = i + 1;
+              const hlCls = hlSet.has(ln) ? ' th-code-line--hl' : '';
+              const numSpan = showNums ? `<span class="th-code-ln">${ln}</span>` : '';
+              return `<div class="th-code-line${hlCls}">${numSpan}<span class="th-code-content">${highlightCodeLine(line, p.language)}</span></div>`;
+            })
+            .join('');
           return `<div class="th-article__code th2-reader__code">
             <div class="th-article__code-header">
               <span class="th-article__code-lang" style="color:${accentColor}">${esc(p.language || 'code')}</span>
               <div class="th-article__code-actions">
                 ${p.filename ? `<span class="th-article__code-file">${esc(p.filename)}</span>` : ''}
-                <button type="button" class="th-article__code-copy" data-copy-code>[ copy ]</button>
+                <button type="button" class="th-article__code-copy" data-copy-code data-raw-code="${esc(rawCode)}">[ copy ]</button>
               </div>
             </div>
-            <pre><code>${esc(p.code || '')}</code></pre>
+            <pre class="th-article__code-pre"><code class="th-code-lines">${linesHtml}</code></pre>
+            ${p.caption ? `<div class="th-article__code-caption">${esc(p.caption)}</div>` : ''}
           </div>`;
         }
         if (item.block_type === 'IMAGE_GALLERY') {
-          const imgs = Array.isArray(p.images) ? p.images : [];
-          return imgs
-            .filter((img: { url?: string }) => img?.url)
-            .map((img: { url: string; caption?: string }) => {
-              const src = img.url.startsWith('/uploads/') ? `${cmsBase}${img.url}` : img.url;
-              return `<figure class="th-article__figure"><img src="${esc(src)}" alt="${esc(img.caption || '')}" loading="lazy" />${
-                img.caption ? `<figcaption>${esc(img.caption)}</figcaption>` : ''
-              }</figure>`;
-            })
-            .join('');
+          const rawImgs = Array.isArray(p.images) ? p.images : [p];
+          const imgs = rawImgs.filter((img: { url?: string }) => img?.url);
+          if (!imgs.length) return '';
+          const floatImgs = imgs.filter((i: { anchor?: string }) => i.anchor === 'float-left' || i.anchor === 'float-right');
+          const inlineImgs = imgs.filter((i: { anchor?: string }) => i.anchor !== 'float-left' && i.anchor !== 'float-right');
+          const figHtml = (img: { url: string; caption?: string; alt?: string; anchor?: string; width?: number }, defWidth: number) => {
+            const src = img.url.startsWith('/uploads/') ? `${cmsBase}${img.url}` : img.url;
+            const anchor = img.anchor || 'center';
+            const w = anchor === 'full' ? 100 : Number(img.width) || defWidth;
+            return `<figure class="th-article__figure th-article__figure--${esc(anchor)}" style="width:${w}%"><img src="${esc(src)}" alt="${esc(img.alt || img.caption || '')}" loading="lazy" />${
+              img.caption ? `<figcaption>${esc(img.caption)}</figcaption>` : ''
+            }</figure>`;
+          };
+          return `${floatImgs.map((i) => figHtml(i, 45)).join('')}${
+            inlineImgs.length ? `<div class="th-article__img-group">${inlineImgs.map((i) => figHtml(i, 100)).join('')}</div>` : ''
+          }`;
         }
-        if (item.block_type === 'QUOTE' || item.block_type === 'CALLOUT') {
-          const isWarn = item.block_type === 'CALLOUT' && p.tone === 'warning';
-          const text =
-            item.block_type === 'CALLOUT'
-              ? esc(p.text || p.message || p.quote || '')
-              : `&ldquo;${esc(p.text || p.quote || '')}&rdquo;`;
-          return `<div class="th-article__callout th2-reader__callout ${isWarn ? 'th-article__callout--warning' : ''}">
-            <div class="th-article__callout-line" style="${isWarn ? '' : `background:${accentColor}`}"></div>
-            <blockquote>${text}</blockquote>
+        if (item.block_type === 'CALLOUT') {
+          const tone = ['info', 'tip', 'warning', 'danger'].includes(p.variant || p.tone) ? p.variant || p.tone : 'tip';
+          const bodyHtml = formatInlineMd(p.text || p.message || p.quote || '').replace(/\n/g, '<br />');
+          return `<div class="th-article__callout th2-reader__callout th-article__callout--${esc(tone)}">
+            <div class="th-article__callout-line"></div>
+            ${p.title ? `<div class="th-article__callout-title">${esc(p.title)}</div>` : ''}
+            <div class="th-article__callout-body">${bodyHtml}</div>
+          </div>`;
+        }
+        if (item.block_type === 'QUOTE') {
+          return `<div class="th-article__callout th2-reader__callout">
+            <div class="th-article__callout-line" style="background:${accentColor}"></div>
+            <blockquote>
+              <span>&ldquo;${formatInlineMd(p.text || p.quote || '')}&rdquo;</span>
+              ${p.cite ? `<cite class="th-article__quote-cite">&mdash; ${esc(p.cite)}</cite>` : ''}
+            </blockquote>
           </div>`;
         }
         return '';
@@ -622,12 +702,18 @@ export async function syncBlogFromCms(): Promise<void> {
       const meta = CAT_META[found.category] || CAT_META.tutorials;
       const otherArticles = articles.filter((a) => a.slug !== found.slug);
 
-      document.title = `${found.title} — Diego Cortés Hernandez`;
+      document.title = found.seoTitle || `${found.title} — Diego Cortés Hernandez`;
       const indicatorEl = document.getElementById('subNavIndicator');
       if (indicatorEl) indicatorEl.textContent = `${found.counterNum} / ${meta.short}`;
 
+      const coverUrl = found.coverImage
+        ? found.coverImage.startsWith('/uploads/')
+          ? `${cmsBase}${found.coverImage}`
+          : found.coverImage
+        : '';
+
       const tocHtml =
-        found.toc.length > 0
+        found.showToc !== false && found.toc.length > 0
           ? `<nav class="th2-reader__toc" aria-label="Table of contents">
               <div class="th2-reader__toc-title">/ chapters</div>
               <ol class="th2-reader__toc-list" id="th2ReaderTocList">
@@ -741,6 +827,11 @@ export async function syncBlogFromCms(): Promise<void> {
               <div class="th2__spine th2-reader__spine">
                 <header class="th2-reader__header">
                   <span class="th2__dot th2__dot--featured" style="background:${meta.color}"></span>
+                  ${
+                    coverUrl
+                      ? `<div class="th2-reader__cover"><img src="${esc(coverUrl)}" alt="${esc(found.title)}" loading="eager" /></div>`
+                      : ''
+                  }
                   <div class="th2__featured-head">
                     <div class="th2__meta" style="color:${meta.color}">
                       <span>${esc(found.counterNum)}</span>
@@ -758,6 +849,11 @@ export async function syncBlogFromCms(): Promise<void> {
                     ${found.heroSubtitle ? `<span class="th2-reader__subtitle-em"> ${esc(found.heroSubtitle)}</span>` : ''}
                   </h1>
                   <p class="th2-reader__lead">${esc(found.lead)}</p>
+                  ${
+                    found.tags && found.tags.length > 0
+                      ? `<div class="th2-reader__tags">${found.tags.map((t) => `<span class="th2-reader__tag">#${esc(t)}</span>`).join('')}</div>`
+                      : ''
+                  }
                   <div class="th2-reader__header-actions">
                     <a href="#${esc(found.toc[0]?.id || 'articleBody')}" class="th2__featured-cta" style="border-bottom-color:${meta.color}">
                       read thread &darr;

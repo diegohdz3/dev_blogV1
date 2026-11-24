@@ -8,6 +8,61 @@ interface Props {
 
 const { blocks, accentColor = '#3ddbd9' } = Astro.props;
 const contentBlocks = blocks.filter((b) => b.block_type !== 'CASE_HERO');
+const cmsBase = (process.env.CMS_API_URL || 'https://cms-core-api-production.up.railway.app').replace(/\/+$/, '');
+
+function escHtml(v: unknown): string {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function formatInlineMd(text: unknown): string {
+  return escHtml(text)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+}
+
+function parseHighlightLines(spec: unknown): Set<number> {
+  const set = new Set<number>();
+  if (!spec) return set;
+  for (const part of String(spec).split(',')) {
+    const t = part.trim();
+    if (!t) continue;
+    if (t.includes('-')) {
+      const [s, e] = t.split('-').map((n) => parseInt(n.trim(), 10));
+      if (!Number.isNaN(s) && !Number.isNaN(e)) {
+        for (let i = Math.min(s, e); i <= Math.max(s, e); i++) set.add(i);
+      }
+    } else {
+      const n = parseInt(t, 10);
+      if (!Number.isNaN(n)) set.add(n);
+    }
+  }
+  return set;
+}
+
+function highlightCodeLine(line: string, lang?: string): string {
+  let s = escHtml(line);
+  if (!s.trim()) return ' ';
+  if ((lang || '').toLowerCase() === 'text') return s;
+  const slots: string[] = [];
+  const stash = (cls: string, val: string) => {
+    const idx = slots.push(`<span class="${cls}">${val}</span>`) - 1;
+    return `\u0000T${idx}\u0000`;
+  };
+  s = s.replace(/(\/\/.*$|#.*$|--.*$)/g, (m) => stash('tok-cmt', m));
+  s = s.replace(/(&quot;(?:[^&]|&(?!quot;))*&quot;|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)/g, (m) => stash('tok-str', m));
+  s = s.replace(
+    /\b(import|export|from|const|let|var|function|async|await|return|if|else|for|while|switch|case|break|continue|new|class|extends|implements|interface|type|enum|public|private|protected|readonly|try|catch|finally|throw|true|false|null|undefined|SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|JOIN|LEFT|INNER|ON|GROUP|BY|ORDER|LIMIT|CREATE|TABLE|AS|AND|OR|NOT|IN)\b/g,
+    (m) => stash('tok-kw', m)
+  );
+  s = s.replace(/\b(\d+(?:\.\d+)?)\b/g, (m) => stash('tok-num', m));
+  s = s.replace(/\b([a-zA-Z_]\w*)(?=\s*\()/g, (m) => stash('tok-fn', m));
+  return s.replace(/\u0000T(\d+)\u0000/g, (_, idx) => slots[Number(idx)] || '');
+}
 
 interface RenderGroup {
   kind: 'editorial_section' | 'overview' | 'timeline' | 'challenges';
@@ -207,18 +262,22 @@ for (const block of contentBlocks) {
                   : '';
               return (
                 <>
-                  {rawHtml ? <p set:html={rawHtml} /> : paras.map((para: string) => <p>{para}</p>)}
+                  {rawHtml ? (
+                    <p set:html={rawHtml} />
+                  ) : (
+                    paras.map((para: string) => <p set:html={formatInlineMd(para)} />)
+                  )}
                   {listItems.length > 0 &&
                     (p.ordered ? (
                       <ol class="th-article__list th-article__list--ordered">
                         {listItems.map((li: string) => (
-                          <li>{li}</li>
+                          <li set:html={formatInlineMd(li)} />
                         ))}
                       </ol>
                     ) : (
                       <ul class="th-article__list">
                         {listItems.map((li: string) => (
-                          <li>{li}</li>
+                          <li set:html={formatInlineMd(li)} />
                         ))}
                       </ul>
                     ))}
@@ -227,6 +286,19 @@ for (const block of contentBlocks) {
             }
 
             if (item.block_type === 'CODE') {
+              const rawCode = String(p.code || '');
+              const lines = rawCode.split('\n');
+              const hlSet = parseHighlightLines(p.highlightLines);
+              const showNums = p.showLineNumbers !== false;
+              const linesHtml = lines
+                .map((line: string, i: number) => {
+                  const ln = i + 1;
+                  const hlCls = hlSet.has(ln) ? ' th-code-line--hl' : '';
+                  const numSpan = showNums ? `<span class="th-code-ln">${ln}</span>` : '';
+                  return `<div class="th-code-line${hlCls}">${numSpan}<span class="th-code-content">${highlightCodeLine(line, p.language)}</span></div>`;
+                })
+                .join('');
+
               return (
                 <div class="th-article__code th2-reader__code">
                   <div class="th-article__code-header">
@@ -235,41 +307,82 @@ for (const block of contentBlocks) {
                     </span>
                     <div class="th-article__code-actions">
                       {p.filename && <span class="th-article__code-file">{p.filename}</span>}
-                      <button type="button" class="th-article__code-copy" data-copy-code>
+                      <button type="button" class="th-article__code-copy" data-copy-code data-raw-code={rawCode}>
                         [ copy ]
                       </button>
                     </div>
                   </div>
-                  <pre><code>{p.code}</code></pre>
+                  <pre class="th-article__code-pre"><code class="th-code-lines" set:html={linesHtml} /></pre>
+                  {p.caption && <div class="th-article__code-caption">{p.caption}</div>}
                 </div>
               );
             }
 
             if (item.block_type === 'IMAGE_GALLERY') {
-              const imgs = Array.isArray(p.images) ? p.images : [];
-              return imgs
-                .filter((img: { url?: string }) => img?.url)
-                .map((img: { url: string; caption?: string }) => (
-                  <figure class="th-article__figure">
-                    <img src={img.url} alt={img.caption || ''} loading="lazy" />
-                    {img.caption && <figcaption>{img.caption}</figcaption>}
-                  </figure>
-                ));
+              const rawImgs = Array.isArray(p.images) ? p.images : [p];
+              const imgs = rawImgs.filter((img: { url?: string }) => img?.url);
+              if (imgs.length === 0) return null;
+
+              const floatImgs = imgs.filter(
+                (i: { anchor?: string }) => i.anchor === 'float-left' || i.anchor === 'float-right'
+              );
+              const inlineImgs = imgs.filter(
+                (i: { anchor?: string }) => i.anchor !== 'float-left' && i.anchor !== 'float-right'
+              );
+
+              return (
+                <>
+                  {floatImgs.map((img: { url: string; caption?: string; alt?: string; anchor?: string; width?: number }) => {
+                    const src = img.url.startsWith('/uploads/') ? `${cmsBase}${img.url}` : img.url;
+                    const anchor = img.anchor || 'float-left';
+                    const w = Number(img.width) || 45;
+                    return (
+                      <figure class={`th-article__figure th-article__figure--${anchor}`} style={`width:${w}%`}>
+                        <img src={src} alt={img.alt || img.caption || ''} loading="lazy" />
+                        {img.caption && <figcaption>{img.caption}</figcaption>}
+                      </figure>
+                    );
+                  })}
+                  {inlineImgs.length > 0 && (
+                    <div class="th-article__img-group">
+                      {inlineImgs.map((img: { url: string; caption?: string; alt?: string; anchor?: string; width?: number }) => {
+                        const src = img.url.startsWith('/uploads/') ? `${cmsBase}${img.url}` : img.url;
+                        const anchor = img.anchor || 'center';
+                        const w = anchor === 'full' ? 100 : Number(img.width) || 100;
+                        return (
+                          <figure class={`th-article__figure th-article__figure--${anchor}`} style={`width:${w}%`}>
+                            <img src={src} alt={img.alt || img.caption || ''} loading="lazy" />
+                            {img.caption && <figcaption>{img.caption}</figcaption>}
+                          </figure>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              );
             }
 
-            if (item.block_type === 'QUOTE' || item.block_type === 'CALLOUT') {
-              const isWarn = item.block_type === 'CALLOUT' && p.tone === 'warning';
+            if (item.block_type === 'CALLOUT') {
+              const tone = ['info', 'tip', 'warning', 'danger'].includes(p.variant || p.tone)
+                ? p.variant || p.tone
+                : 'tip';
+              const bodyHtml = formatInlineMd(p.text || p.message || p.quote || '').replace(/\n/g, '<br />');
               return (
-                <div
-                  class:list={['th-article__callout', 'th2-reader__callout', { 'th-article__callout--warning': isWarn }]}
-                >
-                  <div class="th-article__callout-line" style={isWarn ? '' : `background:${accentColor}`}></div>
+                <div class:list={['th-article__callout', 'th2-reader__callout', `th-article__callout--${tone}`]}>
+                  <div class="th-article__callout-line"></div>
+                  {p.title && <div class="th-article__callout-title">{p.title}</div>}
+                  <div class="th-article__callout-body" set:html={bodyHtml} />
+                </div>
+              );
+            }
+
+            if (item.block_type === 'QUOTE') {
+              return (
+                <div class="th-article__callout th2-reader__callout">
+                  <div class="th-article__callout-line" style={`background:${accentColor}`}></div>
                   <blockquote>
-                    {item.block_type === 'CALLOUT' ? (
-                      p.text || p.message || p.quote
-                    ) : (
-                      <>&ldquo;{p.text || p.quote}&rdquo;</>
-                    )}
+                    <span set:html={`&ldquo;${formatInlineMd(p.text || p.quote || '')}&rdquo;`} />
+                    {p.cite && <cite class="th-article__quote-cite">&mdash; {p.cite}</cite>}
                   </blockquote>
                 </div>
               );

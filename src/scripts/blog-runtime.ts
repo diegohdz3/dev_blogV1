@@ -445,10 +445,12 @@ function bootPageInteractions(): void {
 
       const copyCodeBtn = target.closest<HTMLButtonElement>('[data-copy-code]');
       if (copyCodeBtn) {
+        const rawAttr = copyCodeBtn.getAttribute('data-raw-code');
         const codeEl = copyCodeBtn.closest('.th-article__code')?.querySelector('code');
-        if (!codeEl) return;
+        const toCopy = rawAttr !== null ? rawAttr : codeEl?.textContent || '';
+        if (!toCopy) return;
         try {
-          await navigator.clipboard.writeText(codeEl.textContent || '');
+          await navigator.clipboard.writeText(toCopy);
           const prev = copyCodeBtn.textContent;
           copyCodeBtn.textContent = '[ copied ✓ ]';
           copyCodeBtn.classList.add('is-copied');
@@ -536,30 +538,6 @@ function bootPageInteractions(): void {
     });
     updateTimelineLine();
   }
-
-  // 6. Code Block Copy Button
-  document.querySelectorAll<HTMLButtonElement>('[data-copy-code]').forEach((btn) => {
-    btn.addEventListener(
-      'click',
-      async () => {
-        const codeEl = btn.closest('.th-article__code')?.querySelector('code');
-        if (!codeEl) return;
-        try {
-          await navigator.clipboard.writeText(codeEl.textContent || '');
-          const prev = btn.textContent;
-          btn.textContent = '[ copied ✓ ]';
-          btn.classList.add('is-copied');
-          setTimeout(() => {
-            btn.textContent = prev;
-            btn.classList.remove('is-copied');
-          }, 1800);
-        } catch {
-          // ignore clipboard error
-        }
-      },
-      { signal }
-    );
-  });
 
   // 7. Smooth scroll for in-page anchor links (#articleBody, etc.)
   document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((link) => {
